@@ -29,6 +29,7 @@ $query = "
 $countQuery = "SELECT COUNT(*) AS total FROM clientes $where";
 
 $result = pg_query_params($conn, $query, $params);
+
 $countResult = pg_query_params($conn, $countQuery, $params);
 
 $clientes = pg_fetch_all($result) ?? [];
