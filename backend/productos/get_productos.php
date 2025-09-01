@@ -10,7 +10,7 @@ try {
 
     // Parámetros de paginación
     $page = isset($data['page']) && is_numeric($data['page']) ? (int)$data['page'] : 1;
-    $limit = isset($data['limit']) && is_numeric($data['limit']) ? (int)$data['limit'] : 20;
+    $limit = isset($data['limit']) && is_numeric($data['limit']) ? (int)$data['limit'] : 350;
     $offset = ($page - 1) * $limit;
 
     // Filtros opcionales
@@ -42,8 +42,11 @@ try {
 
     // Consulta principal con paginación
     $sql = "
-        SELECT 
+       SELECT 
             p.id_producto,
+			pc.nombre_catalogo,
+			pc.ruta_imagen,
+			pc.descripcion_catalogo,
             p.nombre_producto,
             p.descripcion,
             p.codigo_producto,
@@ -60,7 +63,9 @@ try {
             p.stock_minimo,
             p.activo,
             p.creado_en,
-            p.actualizado_en
+            p.actualizado_en,
+			p.productos_catalogos_id,
+            p.color
         FROM productos p
         LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
         LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
@@ -68,6 +73,7 @@ try {
         LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
         LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
         LEFT JOIN cuentas_contables cc ON p.cuenta_contable_id = cc.id_cuenta
+        LEFT JOIN productos_catalogos pc ON  p.productos_catalogos_id =  pc.productos_catalogos_id
         $whereClause
         ORDER BY p.id_producto
         LIMIT $limit OFFSET $offset

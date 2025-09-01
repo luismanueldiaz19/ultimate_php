@@ -17,17 +17,7 @@ if (!empty($filtro)) {
 
 // Consulta principal de diseños
 $query = "
-    SELECT 
-        design_jobs_id, 
-        institution_name, 
-        job_type, 
-        version, 
-        created_at, 
-        updated_at, 
-        is_active, 
-        notes,
-        color_scheme,
-        pantones
+    SELECT *
     FROM design_jobs
     $where
     ORDER BY created_at DESC
@@ -49,13 +39,7 @@ $total = pg_fetch_result($countResult, 0, "total");
 foreach ($designs as &$design) {
     $designId = $design['design_jobs_id'];
     $imgQuery = "
-        SELECT 
-            design_image_id, 
-            design_jobs_id, 
-            image_file, 
-            location, 
-            created_at, 
-            updated_at
+        SELECT *
         FROM design_images
         WHERE design_jobs_id = $1
         ORDER BY created_at ASC

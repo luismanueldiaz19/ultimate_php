@@ -12,7 +12,7 @@ try {
         json_response(["success" => false, "message" => "Se esperaba una lista de productos"], 400);
     }
 
-    $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta', 'proveedor_id', 'unidad_medida_id', 'impuesto_id', 'almacen_id', 'cuenta_contable_id', 'id_usuario'];
+    $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta', 'proveedor_id', 'unidad_medida_id', 'impuesto_id', 'almacen_id', 'cuenta_contable_id', 'id_usuario', 'productos_catalogos_id'];
     $insertados = [];
     $errores = [];
 
@@ -48,6 +48,9 @@ try {
         $stock_minimo  = (float)($data['stock_minimo'] ?? 0);
         $activo        = isset($data['activo']) ? ($data['activo'] ? 't' : 'f') : 't';
         $usuarioId     = $data['id_usuario'];
+        $productos_catalogos_id   = $data['productos_catalogos_id'];
+        $color = isset($data['color']) && is_array($data['color']) ? json_encode($data['color']) : null;
+
 
         // Código automático
         if (empty($data['codigo_producto'])) {
@@ -60,11 +63,11 @@ try {
 
         // Insertar
         $sql = "INSERT INTO productos 
-            (nombre_producto, descripcion, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-            RETURNING id_producto, nombre_producto, codigo_producto, categoria_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo";
+            (nombre_producto, descripcion, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,productos_catalogos_id,color)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+            RETURNING id_producto, nombre_producto, codigo_producto, categoria_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo, color";
 
-        $params = [$nombre, $descripcion, $codigo, $categoria_id, $proveedor_id, $unidad_id, $impuesto_id, $almacen_id, $cuenta_id, $precio_compra, $precio_venta, $stock_actual, $stock_minimo, $activo];
+        $params = [$nombre, $descripcion, $codigo, $categoria_id, $proveedor_id, $unidad_id, $impuesto_id, $almacen_id, $cuenta_id, $precio_compra, $precio_venta, $stock_actual, $stock_minimo, $activo,$productos_catalogos_id, $color];
         $result = pg_query_params($conn, $sql, $params);
 
         if (!$result) {
