@@ -10,7 +10,9 @@ try {
 
     // Campos obligatorios
     $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta' ,'proveedor_id','unidad_medida_id','impuesto_id', 'almacen_id','cuenta_contable_id', 'id_usuario','color'];
+    
     $missingFields = [];
+    
     foreach ($requiredFields as $field) {
         if (!isset($data[$field]) || trim($data[$field]) === '') {
             $missingFields[] = $field;
