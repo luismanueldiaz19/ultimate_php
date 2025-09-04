@@ -31,6 +31,7 @@ $sql = "SELECT
     p.total_final,
     p.is_facturado,
     p.name_logo,
+    p.nota_orden,
     item_pre_orden.item_pre_orden_id,
     item_pre_orden.design_image_id,
     item_pre_orden.id_producto,
@@ -42,9 +43,9 @@ $sql = "SELECT
     item_pre_orden.cant,
     item_pre_orden.estado_item,
     item_pre_orden.creado_en AS creado_item,
-    clientes.nombre,
+    clientes.nombre as nombre_cliente,
 	clientes.telefono,
-    usuarios.nombre,
+    usuarios.nombre as usuario_nombre,
 	design_images.design_jobs_id,
 	design_images.comment_imagen,
 	design_images.body_ubicacion,
@@ -85,7 +86,7 @@ foreach ($ordenes as $item) {
 
         $dataClient = [
         'id_cliente' => $item['id_cliente'],
-        'nombre' => $item['nombre'],
+        'nombre' => $item['nombre_cliente'],
         'telefono' => $item['telefono']
        ];
 
@@ -94,12 +95,17 @@ foreach ($ordenes as $item) {
         'ficha' => $item['ficha'],
         'color_ficha' => json_decode($item['color_ficha'], true),
        ];
+       $dataUsuario = [
+        'id_usuario' => $item['id_usuario'],
+        'usuario_nombre' => $item['usuario_nombre'],
+       ];
     
         $agrupadoPorOrden[$numOrden] = [
             'num_orden' => $numOrden,
             'pre_orden_id' => $item['pre_orden_id'],
-            'data_ficha' => $dataFichas, 
-            'data_cliente' => $dataClient,
+            'ficha' => $dataFichas, 
+            'cliente' => $dataClient,
+            'usuario' => $dataUsuario,
             'estado_hoja' => $item['estado_hoja'],
             'estado_general' => $item['estado_general'],
             'fecha_entrega' => $item['fecha_entrega'],
@@ -109,7 +115,8 @@ foreach ($ordenes as $item) {
             'total_final' => $item['total_final'],
             'is_facturado' => $item['is_facturado'],
             'name_logo' => $item['name_logo'],
-            'items' => []
+            'nota_orden' => $item['nota_orden'],
+            'items_pre_orden' => []
         ];
     }
   
@@ -126,7 +133,7 @@ foreach ($ordenes as $item) {
 
 
     // Agregamos el ítem a la orden correspondiente
-    $agrupadoPorOrden[$numOrden]['items'][] = [
+    $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
         'item_pre_orden_id' => $item['item_pre_orden_id'],
         'id_producto' => $item['id_producto'],
         'nombre_producto' => $item['nombre_producto'],
