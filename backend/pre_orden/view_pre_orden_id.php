@@ -3,14 +3,29 @@ include '../conexion.php';
 include '../utils.php';
 header("Content-Type: application/json");
 
-$data = json_decode(file_get_contents("php://input"), true) ?? [];
+$data = json_decode(file_get_contents("php://input"), true);
 
-// Parámetros de paginación
-$limit  = isset($data['limit'])  ? intval($data['limit'])  : 10;
-$offset = isset($data['offset']) ? intval($data['offset']) : 0;
+// Filtro recibido
+$numOrdenFiltro = isset($data['num_orden']) ? trim($data['num_orden']) : '';
 
-// Parámetro de filtro (puede ser ficha o número de orden)
-$filtro = isset($data['filtro']) ? trim($data['filtro']) : '';
+// Validar campos requeridos
+$params = ['num_orden'];
+$faltantes = [];
+
+foreach ($params as $campo) {
+    if (!isset($data[$campo]) || trim($data[$campo]) === '') {
+        $faltantes[] = $campo;
+    }
+}
+
+if (!empty($faltantes)) {
+    echo json_encode([
+        'status' => false,
+        'message' => 'Faltan campos requeridos o están vacíos',
+        'faltantes' => $faltantes
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 // Base de consulta
 $sql = "SELECT 
@@ -30,20 +45,20 @@ $sql = "SELECT
     p.total_itbis,
     p.total_final,
     p.is_facturado,
+    p.name_logo,
     p.nota_orden,
     item_pre_orden.item_pre_orden_id,
     item_pre_orden.design_image_id,
     item_pre_orden.id_producto,
     productos.nombre_producto,
     productos.codigo_producto,
-    item_pre_orden.is_produccion,
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
     item_pre_orden.itbs,
     item_pre_orden.cant,
     item_pre_orden.estado_item,
     item_pre_orden.creado_en AS creado_item,
-    
+    item_pre_orden.is_produccion,
     clientes.nombre as nombre_cliente,
     clientes.telefono,
     usuarios.nombre as usuario_nombre,
@@ -54,25 +69,24 @@ $sql = "SELECT
     design_images.ruta, 
     design_images.tamano
 FROM public.pre_orden p
-LEFT JOIN public.item_pre_orden 
-    ON item_pre_orden.pre_orden_id = p.pre_orden_id
-LEFT JOIN public.clientes 
-    ON clientes.id_cliente = p.id_cliente
-INNER JOIN public.usuarios 
-    ON usuarios.id_usuario = p.id_usuario
-INNER JOIN public.productos 
-    ON productos.id_producto = item_pre_orden.id_producto
-INNER JOIN public.list_ficha_available 
-    ON list_ficha_available.ficha_id = p.ficha_id
-LEFT JOIN public.design_images 
-    ON design_images.design_image_id = item_pre_orden.design_image_id
-WHERE p.estado_general != 'ENTREGADO'
-ORDER BY p.num_orden ASC
-";
+LEFT JOIN public.item_pre_orden ON item_pre_orden.pre_orden_id = p.pre_orden_id
+LEFT JOIN public.clientes ON clientes.id_cliente = p.id_cliente
+INNER JOIN public.usuarios ON usuarios.id_usuario = p.id_usuario
+INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_producto
+INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = p.ficha_id
+LEFT JOIN public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
+WHERE p.num_orden = $1";
+
+$params = [$numOrdenFiltro];
 
 try {
-    $res = pg_query($conn, $sql);
-    $ordenes = pg_fetch_all($res);
+    $res = pg_query_params($conn, $sql, $params);
+
+    if (!$res) {
+        throw new Exception(pg_last_error($conn));
+    }
+
+    $ordenes = pg_fetch_all($res) ?: [];
 
     $agrupadoPorOrden = [];
 
@@ -97,11 +111,11 @@ try {
                 'id_usuario' => $item['id_usuario'],
                 'usuario_nombre' => $item['usuario_nombre'],
             ];
-        
+
             $agrupadoPorOrden[$numOrden] = [
                 'num_orden' => $numOrden,
                 'pre_orden_id' => $item['pre_orden_id'],
-                'ficha' => $dataFichas, 
+                'ficha' => $dataFichas,
                 'cliente' => $dataClient,
                 'usuario' => $dataUsuario,
                 'estado_hoja' => $item['estado_hoja'],
@@ -117,7 +131,7 @@ try {
                 'items_pre_orden' => []
             ];
         }
-    
+
         $designImage = [
             'design_image_id' => $item['design_image_id'],
             'design_jobs_id' => $item['design_jobs_id'],
@@ -128,11 +142,9 @@ try {
             'tamano' => $item['tamano']
         ];
 
-        // Agregamos el ítem a la orden correspondiente
-        $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [   
+        // Agregamos el ítem
+        $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
             'item_pre_orden_id' => $item['item_pre_orden_id'],
-            // 'is_produccion' => (bool) $item['is_produccion'],
-            'is_produccion' => $item['is_produccion'],
             'id_producto' => $item['id_producto'],
             'nombre_producto' => $item['nombre_producto'],
             'codigo_producto' => $item['codigo_producto'],
@@ -142,16 +154,14 @@ try {
             'cant' => $item['cant'],
             'estado_item' => $item['estado_item'],
             'creado_item' => $item['creado_item'],
-            
+            'is_produccion' => $item['is_produccion'],
             'DesignImage' => $designImage,
         ];
     }
 
     echo json_encode([
         "success" => true,
-        "data" => array_values($agrupadoPorOrden),
-        "limit" => $limit,
-        "offset" => $offset
+        "pre_orden" => reset($agrupadoPorOrden)
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {

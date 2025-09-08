@@ -75,7 +75,7 @@ try {
     $sqlPreOrden = "INSERT INTO pre_orden 
     (ficha_id, num_orden, id_usuario, id_cliente, estado_hoja, estado_general, creado_en, fecha_entrega, 
      total_bruto, total_itbis, total_final, is_facturado, name_logo)
-    VALUES ($1, $2, $3, $4, 'PENDIENTE', 'ACTIVA', NOW(), $5, $6, $7, $8, FALSE, $9)
+    VALUES ($1, $2, $3, $4, 'NORMAL', 'PENDIENTE', NOW(), $5, $6, $7, $8, FALSE, $9)
     RETURNING pre_orden_id";
 
     $resPreOrden = pg_query_params($conn, $sqlPreOrden, [
