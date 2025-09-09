@@ -8,7 +8,9 @@ header("Access-Control-Allow-Origin: *");
 try {
     // Leer parámetros JSON o POST
     $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
-
+    // Validar y limpiar la lista de tipos de departamento
+    $departamentosRaw = isset($data['depart']) ? trim($data['depart']) : '';
+    $departamentos = array_filter(array_map('trim', explode(",", $departamentosRaw)));
     // Fechas por defecto si no se envían
     $fechaInicio = isset($data['date1']) ? trim($data['date1']) : '';
 
@@ -20,6 +22,26 @@ try {
             "message" => "Formato de fecha inválido"
         ], 400);
     }
+
+
+
+
+
+
+if (empty($departamentos)) {
+    json_response([
+        "success" => false,
+        "message" => "La lista de tipos de departamento está vacía."
+    ], 400);
+}
+
+// Construir placeholders seguros ($2, $3, ...)
+$placeholders = [];
+for ($i = 0; $i < count($departamentos); $i++) {
+    $placeholders[] = '$' . ($i + 2); // $1 será la fecha
+}
+$placeholdersStr = implode(",", $placeholders);
+
 
     // Consulta SQL
     $sql = "
@@ -68,12 +90,14 @@ try {
         INNER JOIN public.departments ON departments.department_id = m.department_id
         INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = pre_orden.ficha_id
         left join public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
-        WHERE pre_orden.fecha_entrega <= $1 AND m.estado_planificacion_work <> 'TERMINADO'
-        ORDER BY departments.name_department ASC
-    ";
+        WHERE pre_orden.fecha_entrega <= $1  AND departments.type IN ($placeholdersStr)
+        AND m.estado_planificacion_work <> 'TERMINADO'
+        ORDER BY departments.name_department ASC";
 
     // Ejecutar consulta segura
-    $params = [$fechaInicio];
+    // $params = [$fechaInicio];
+    $params = array_merge([$fechaInicio], $departamentos);
+
 
     $result = pg_query_params($conn, $sql, $params);
 

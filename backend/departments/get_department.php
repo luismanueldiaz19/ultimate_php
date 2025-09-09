@@ -13,6 +13,7 @@ try {
 
     // Convertir la cadena en un array limpio
     $departamentosRaw = trim($data['depart']);
+    
     $departamentos = array_filter(array_map('trim', explode(",", $departamentosRaw)));
 
     if (empty($departamentos)) {
@@ -29,7 +30,7 @@ try {
     // Consulta SQL con placeholders
     $query = "SELECT department_id, name_department, statu, nivel, type, date ,path_image
               FROM public.departments 
-              WHERE type IN ($placeholdersStr)";
+              WHERE type IN ($placeholdersStr)";    
 
     // Ejecutar consulta con parámetros seguros
     $result = pg_query_params($conn, $query, $departamentos);
