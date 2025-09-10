@@ -15,6 +15,8 @@ try {
     $nombre      = trim($data['nombre'] ?? '');
     $registed_by = $data['registed_by'] ?? '';
     $rol_id      = $data['rol_id'] ?? null;
+    $departamentos_acceso = $data['departamentos_acceso'] ?? [];
+
 
     // Validar campos obligatorios individualmente
     $errores = [];
@@ -53,10 +55,12 @@ try {
     $passwordHash = password_hash($password, PASSWORD_BCRYPT, ["cost" => 12]);
 
     // Insertar usuario
-    $sql = "INSERT INTO usuarios (nombre, username, password_hash, rol_id, registed_by)
-            VALUES ($1, $2, $3, $4, $5) RETURNING id_usuario";
+    $sql = "INSERT INTO usuarios (nombre, username, password_hash, rol_id, registed_by,depart_acceso)
+            VALUES ($1, $2, $3, $4, $5,$6) RETURNING id_usuario";
 
-    $result = pg_query_params($conn, $sql, [$nombre, $username, $passwordHash, $rol_id, $registed_by]);
+    $departamentos_acceso_pg = '{' . implode(',', $departamentos_acceso) . '}';
+
+    $result = pg_query_params($conn, $sql, [$nombre, $username, $passwordHash, $rol_id, $registed_by, $departamentos_acceso_pg]);
 
     if (!$result) {
         json_response(["error" => "Error al insertar usuario"], 500);

@@ -25,7 +25,7 @@ if (empty($username) || empty($password)) {
 
 // Buscar usuario activo con su rol
 $queryUser = "
-    SELECT u.id_usuario, u.nombre, u.username, u.password_hash, u.rol_id, u.activo, r.nombre AS rol_nombre
+    SELECT u.id_usuario, u.nombre, u.username, u.password_hash, u.rol_id, u.activo, r.nombre AS rol_nombre,u.depart_acceso
     FROM public.usuarios u
     JOIN public.roles r ON u.rol_id = r.id_rol
     WHERE u.username = $1 AND u.activo = TRUE
@@ -61,7 +61,11 @@ if ($resultPermisos && pg_num_rows($resultPermisos) > 0) {
         $permisos[] = $permiso;
     }
 }
+ 
 
+// Convertir el array PostgreSQL a array PHP
+$departRaw = $user['depart_acceso']; // "{a,k,g,f}"
+$departAccess = explode(',', trim($departRaw, '{}'));
 // Enviar respuesta de éxito
 echo json_encode([
     'success' => true,
@@ -72,6 +76,7 @@ echo json_encode([
         'username' => $user['username'],
         'rol_id' => $user['rol_id'],
         'rol_nombre' => $user['rol_nombre'],
+        'depart_acceso' => $departAccess,
         'permisos' => $permisos
     ]
 ]);
