@@ -59,6 +59,7 @@ $sql = "SELECT
     item_pre_orden.estado_item,
     item_pre_orden.creado_en AS creado_item,
     item_pre_orden.is_produccion,
+    item_pre_orden.tela,
     clientes.nombre as nombre_cliente,
     clientes.telefono,
     usuarios.nombre as usuario_nombre,
@@ -146,6 +147,7 @@ try {
         $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
             'item_pre_orden_id' => $item['item_pre_orden_id'],
             'id_producto' => $item['id_producto'],
+            'tela' => $item['tela'],
             'nombre_producto' => $item['nombre_producto'],
             'codigo_producto' => $item['codigo_producto'],
             'nota_producto' => $item['nota_producto'],
