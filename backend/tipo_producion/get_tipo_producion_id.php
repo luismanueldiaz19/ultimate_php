@@ -35,48 +35,36 @@ try {
 
     $rows = pg_fetch_all($result) ?? [];
 
-    // Agrupar por departamento y luego por type_work
+ 
     $grouped = [];
-
     foreach ($rows as $row) {
-        $deptName = $row['name_department'];
-        $typeWorkId = $row['type_work_id'];
-
-        if (!isset($grouped[$deptName])) {
-            $grouped[$deptName] = [];
-        }
-
-        $found = false;
-        foreach ($grouped[$deptName] as &$tw) {
-            if ($tw['type_work_id'] === $typeWorkId) {
-                if (!empty($row['campos_type_work_id'])) {
-                    $tw['campos'][] = [
-                        'campos_type_work_id' => $row['campos_type_work_id'],
-                        'nombre_campo' => $row['nombre_campo']
-                    ];
-                }
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
-            $grouped[$deptName][] = [
+        $key = $row['type_work'];
+        if (!isset($grouped[$key])) {
+            $grouped[$key] = [
                 'type_work_id' => $row['type_work_id'],
-                'type_work' => $row['type_work'],
-                'image_path' => $row['image_path'],
                 'department_id' => $row['department_id'],
-                'campos' => !empty($row['campos_type_work_id']) ? array_values( [[
-                    'campos_type_work_id' => $row['campos_type_work_id'],
-                    'nombre_campo' => $row['nombre_campo']
-                ]] ) :array_values ( [])
+                'type_work' => $row['type_work'],
+                'name_department' => $row['name_department'],
+                'image_path' => $row['image_path'],
+                'campos' => []
+            ];
+        }
+
+        // Si hay campos, agrégalos
+        if (!empty($row['campos_type_work_id'])) {
+            $grouped[$key]['campos'][] = [
+                'campos_type_work_id' => $row['campos_type_work_id'],
+                'nombre_campo' => $row['nombre_campo']
             ];
         }
     }
 
+    // Convertir a array indexado
+    $result = array_values($grouped);
+
     json_response([
         'success' => true,
-        'data' => $grouped
+        'data' => $result
     ]);
 
 } catch (Exception $e) {
