@@ -66,9 +66,7 @@ INNER JOIN public.list_ficha_available
     ON list_ficha_available.ficha_id = p.ficha_id
 LEFT JOIN public.design_images 
     ON design_images.design_image_id = item_pre_orden.design_image_id
-WHERE p.estado_general != 'ENTREGADO'
-ORDER BY p.num_orden ASC
-";
+WHERE p.estado_general != 'ENTREGADO' ORDER BY p.num_orden ASC";
 
 try {
     $res = pg_query($conn, $sql);

@@ -72,7 +72,7 @@ echo json_encode([
     'message' => 'Login exitoso.',
     'usuario' => [
         'id_usuario' => $user['id_usuario'],
-        'nombre' => $user['nombre'],
+        'usuario_nombre' => $user['nombre'],
         'username' => $user['username'],
         'rol_id' => $user['rol_id'],
         'rol_nombre' => $user['rol_nombre'],

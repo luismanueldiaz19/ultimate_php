@@ -18,17 +18,15 @@ try {
 
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $department_id   = $input['department_id'] ?? null;
-    $start_date_from = $input['start_date_from'] ?? null;
-    $start_date_to   = $input['start_date_to'] ?? null;
-
-    if (!$department_id || !$start_date_from || !$start_date_to) {
-        throw new Exception('Los campos "department_id", "start_date_from" y "start_date_to" son requeridos.');
+    $num_orden   = $input['num_orden'] ?? null;
+    
+    if(empty($num_orden)){
+       json_response([
+        'success' => false,
+        'message'   => 'numero de orden requerido'
+    ]);
     }
 
-    // Rango de fecha con horas
-    $start_date_from = $start_date_from . ' 00:00:00';
-    $start_date_to   = $start_date_to . ' 23:59:59';
 
     $sql = "
     SELECT 
@@ -82,12 +80,10 @@ try {
     INNER JOIN public.departments 
         ON departments.department_id = planificacion_work.department_id
     INNER JOIN public.pre_orden ON pre_orden.pre_orden_id = item_pre_orden.pre_orden_id
-    WHERE planificacion_work.department_id = $1 
-      AND m.start_date BETWEEN $2 AND $3
-    ORDER BY m.hoja_produccion_id ASC
-    ";
-//   AND m.estado_hoja_producion <> 'COMPLETADO' 
-    $res = pg_query_params($conn, $sql, [$department_id, $start_date_from, $start_date_to]);
+    WHERE m.num_orden = $1 
+    ORDER BY m.hoja_produccion_id ASC";
+    
+    $res = pg_query_params($conn, $sql, [$num_orden]);
 
     if (!$res) {
         throw new Exception('Error en la consulta: ' . pg_last_error($conn));

@@ -14,7 +14,7 @@ try {
 
     // Extraer y validar campos
     $id_usuario         = $data['id_usuario'] ?? null;
-    $nombre             = trim($data['nombre'] ?? '');
+    $nombre             = trim($data['usuario_nombre'] ?? '');
     $username           = trim($data['username'] ?? '');
     $password           = $data['password'] ?? '';
     $rol_id             = $data['rol_id'] ?? null;
@@ -31,7 +31,7 @@ try {
 
     // Validar campos obligatorios
     $errores = [];
-    if (empty($nombre))   $errores[] = "nombre";
+    if (empty($nombre))   $errores[] = "usuario_nombre";
     if (empty($username)) $errores[] = "username";
     if (empty($password)) $errores[] = "password";
 

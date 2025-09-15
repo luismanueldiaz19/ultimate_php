@@ -12,7 +12,7 @@ try {
 
     $username    = trim($data['username'] ?? '');
     $password    = $data['password'] ?? '';
-    $nombre      = trim($data['nombre'] ?? '');
+    $nombre      = trim($data['usuario_nombre'] ?? '');
     $registed_by = $data['registed_by'] ?? '';
     $rol_id      = $data['rol_id'] ?? null;
     $departamentos_acceso = $data['departamentos_acceso'] ?? [];
@@ -22,7 +22,7 @@ try {
     $errores = [];
     if (empty($username))    $errores[] = "username";
     if (empty($password))    $errores[] = "password";
-    if (empty($nombre))      $errores[] = "nombre";
+    if (empty($nombre))      $errores[] = "usuario_nombre";
     if (empty($registed_by)) $errores[] = "registed_by";
 
     if (!empty($errores)) {
