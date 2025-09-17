@@ -6,6 +6,7 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 
 $data = json_decode(file_get_contents("php://input"), true);
+
 $hoja_id = isset($data['hoja_produccion_id']) ? intval($data['hoja_produccion_id']) : 0;
 
 if ($hoja_id <= 0) {
