@@ -68,7 +68,26 @@ $sql = "SELECT
     design_images.body_ubicacion,
     design_images.tipo_trabajo,
     design_images.ruta, 
-    design_images.tamano
+    design_images.tamano,
+    -- Pagos individuales
+    pagos.pago_id,
+    pagos.monto_pago,
+    pagos.metodo_pago,
+    pagos.referencia_pago,
+    pagos.fecha_pago,
+    pagos.observacion,
+
+    -- Estado de pago agregado
+    COALESCE(pagos_estado.total_pagado, 0) AS total_pagado,
+    (p.total_final - COALESCE(pagos_estado.total_pagado, 0)) AS pendiente,
+    CASE 
+        WHEN COALESCE(pagos_estado.total_pagado, 0) >= p.total_final THEN 'COMPLETO'
+        WHEN COALESCE(pagos_estado.total_pagado, 0) > 0 THEN 'PARCIAL'
+        ELSE 'SIN PAGOS'
+    END AS estado_pago
+
+
+    
 FROM public.pre_orden p
 LEFT JOIN public.item_pre_orden ON item_pre_orden.pre_orden_id = p.pre_orden_id
 LEFT JOIN public.clientes ON clientes.id_cliente = p.id_cliente
@@ -76,6 +95,17 @@ INNER JOIN public.usuarios ON usuarios.id_usuario = p.id_usuario
 INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_producto
 INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = p.ficha_id
 LEFT JOIN public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
+-- JOIN pagos individuales
+LEFT JOIN public.pagos_pre_orden pagos ON pagos.pre_orden_id = p.pre_orden_id
+
+-- JOIN estado de pago agregado
+LEFT JOIN (
+    SELECT 
+        pre_orden_id,
+        SUM(monto_pago) AS total_pagado
+    FROM public.pagos_pre_orden
+    GROUP BY pre_orden_id
+) pagos_estado ON pagos_estado.pre_orden_id = p.pre_orden_id
 WHERE p.num_orden = $1";
 
 $params = [$numOrdenFiltro];
@@ -129,36 +159,60 @@ try {
                 'is_facturado' => $item['is_facturado'],
                 'name_logo' => $item['name_logo'],
                 'nota_orden' => $item['nota_orden'],
-                'items_pre_orden' => []
+                'items_pre_orden' => [],
+                'pagos' => [],
+                'estado_pago' => $item['estado_pago'] ?? null,
+                'total_pagado' => $item['total_pagado'] ?? 0,
+                'pendiente' => $item['pendiente'] ?? 0,
             ];
         }
 
-        $designImage = [
-            'design_image_id' => $item['design_image_id'],
-            'design_jobs_id' => $item['design_jobs_id'],
-            'comment_imagen' => $item['comment_imagen'],
-            'body_ubicacion' => $item['body_ubicacion'],
-            'tipo_trabajo' => $item['tipo_trabajo'],
-            'ruta' => $item['ruta'],
-            'tamano' => $item['tamano']
-        ];
+        // Evitar duplicados de productos
+        $idItem = $item['item_pre_orden_id'];
+        $yaExiste = array_filter($agrupadoPorOrden[$numOrden]['items_pre_orden'], function ($i) use ($idItem) {
+            return $i['item_pre_orden_id'] == $idItem;
+        });
 
-        // Agregamos el ítem
-        $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
-            'item_pre_orden_id' => $item['item_pre_orden_id'],
-            'id_producto' => $item['id_producto'],
-            'tela' => $item['tela'],
-            'nombre_producto' => $item['nombre_producto'],
-            'codigo_producto' => $item['codigo_producto'],
-            'nota_producto' => $item['nota_producto'],
-            'precio' => $item['precio'],
-            'itbs' => $item['itbs'],
-            'cant' => $item['cant'],
-            'estado_item' => $item['estado_item'],
-            'creado_item' => $item['creado_item'],
-            'is_produccion' => $item['is_produccion'],
-            'DesignImage' => $designImage,
-        ];
+        if (empty($yaExiste) && !empty($idItem)) {
+            $designImage = [
+                'design_image_id' => $item['design_image_id'],
+                'design_jobs_id' => $item['design_jobs_id'],
+                'comment_imagen' => $item['comment_imagen'],
+                'body_ubicacion' => $item['body_ubicacion'],
+                'tipo_trabajo' => $item['tipo_trabajo'],
+                'ruta' => $item['ruta'],
+                'tamano' => $item['tamano']
+            ];
+
+            $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
+                'item_pre_orden_id' => $idItem,
+                'id_producto' => $item['id_producto'],
+                'tela' => $item['tela'],
+                'nombre_producto' => $item['nombre_producto'],
+                'codigo_producto' => $item['codigo_producto'],
+                'nota_producto' => $item['nota_producto'],
+                'precio' => $item['precio'],
+                'itbs' => $item['itbs'],
+                'cant' => $item['cant'],
+                'estado_item' => $item['estado_item'],
+                'creado_item' => $item['creado_item'],
+                'is_produccion' => $item['is_produccion'],
+                'DesignImage' => $designImage,
+            ];
+        }
+
+        // Agregar pagos si existen
+        if (!empty($item['pago_id'])) {
+            $agrupadoPorOrden[$numOrden]['pagos'][] = [
+                'pago_id' => $item['pago_id'],
+                'monto_pago' => $item['monto_pago'],
+                'metodo_pago' => $item['metodo_pago'],
+                'referencia_pago' => $item['referencia_pago'],
+                'fecha_pago' => $item['fecha_pago'],
+                'observacion' => $item['observacion'],
+                'id_usuario' => $item['id_usuario'],
+            ];
+        }
     }
 
     echo json_encode([
