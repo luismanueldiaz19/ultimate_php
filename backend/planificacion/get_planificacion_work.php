@@ -91,7 +91,7 @@ $placeholdersStr = implode(",", $placeholders);
         INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = pre_orden.ficha_id
         left join public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
         WHERE pre_orden.fecha_entrega <= $1  AND departments.type IN ($placeholdersStr)
-        AND m.estado_planificacion_work <> 'TERMINADO'
+        AND m.estado_planificacion_work <> 'COMPLETADO'
         ORDER BY departments.name_department ASC";
 
     // Ejecutar consulta segura

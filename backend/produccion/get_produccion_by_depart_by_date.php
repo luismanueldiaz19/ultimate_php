@@ -35,6 +35,7 @@ try {
         -- DATOS PRINCIPALES DEL TRABAJO
         planificacion_work.department_id,
         departments.name_department,
+        planificacion_work.item_pre_orden_id,
         type_work.type_work, 
         type_work.image_path,
         m.hoja_produccion_id, 
@@ -46,6 +47,7 @@ try {
         m.planificacion_work_id,
         m.comentario_producion,
         pre_orden.name_logo,
+        item_pre_orden.pre_orden_id,
 
         -- Informacion Ficha
         list_ficha_available.ficha,
@@ -111,6 +113,8 @@ try {
                 'type_work_id'         => $row['type_work_id'],
                 'planificacion_work_id'=> $row['planificacion_work_id'],
                 'comentario_producion' => $row['comentario_producion'],
+                'item_pre_orden_id' => $row['item_pre_orden_id'],
+                'pre_orden_id'      => $row['pre_orden_id'],
                 'name_logo' => $row['name_logo'],
                 // Datos del tipo de trabajo
                 'type_work'            => $row['type_work'],

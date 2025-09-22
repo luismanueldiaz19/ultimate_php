@@ -201,18 +201,24 @@ try {
             ];
         }
 
-        // Agregar pagos si existen
-        if (!empty($item['pago_id'])) {
-            $agrupadoPorOrden[$numOrden]['pagos'][] = [
-                'pago_id' => $item['pago_id'],
-                'monto_pago' => $item['monto_pago'],
-                'metodo_pago' => $item['metodo_pago'],
-                'referencia_pago' => $item['referencia_pago'],
-                'fecha_pago' => $item['fecha_pago'],
-                'observacion' => $item['observacion'],
-                'id_usuario' => $item['id_usuario'],
-            ];
-        }
+       $idPago = $item['pago_id'];
+$yaExistePago = array_filter($agrupadoPorOrden[$numOrden]['pagos'], function ($p) use ($idPago) {
+    return $p['pago_id'] == $idPago;
+});
+
+if (empty($yaExistePago) && !empty($idPago)) {
+    $agrupadoPorOrden[$numOrden]['pagos'][] = [
+        'pago_id' => $item['pago_id'],
+        'monto_pago' => $item['monto_pago'],
+        'metodo_pago' => $item['metodo_pago'],
+        'referencia_pago' => $item['referencia_pago'],
+        'fecha_pago' => $item['fecha_pago'],
+        'observacion' => $item['observacion'],
+        'id_usuario' => $item['id_usuario'],
+    ];
+}
+
+
     }
 
     echo json_encode([

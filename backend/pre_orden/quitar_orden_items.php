@@ -79,6 +79,27 @@ try {
         throw new Exception("Error al actualizar totales: " . pg_last_error($conn));
     }
 
+
+      // Verificar si ya no quedan ítems en la orden
+    $resCheckItems = @pg_query_params($conn,
+        "SELECT 1 FROM item_pre_orden WHERE pre_orden_id = $1 LIMIT 1",
+        [$preOrdenId]
+    );
+
+    if (pg_num_rows($resCheckItems) === 0) {
+        // No hay ítems, eliminar la orden
+        $resDeleteOrden = @pg_query_params($conn,
+            "DELETE FROM pre_orden WHERE pre_orden_id = $1",
+            [$preOrdenId]
+        );
+
+        if (!$resDeleteOrden) {
+            throw new Exception("Error al eliminar la orden vacía: " . pg_last_error($conn));
+        }
+    }
+
+
+
     pg_query($conn, "COMMIT");
 
     json_response([
