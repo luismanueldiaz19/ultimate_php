@@ -3,9 +3,6 @@ include '../conexion.php';
 require '../vendor/autoload.php'; // Asegúrate de tener OTPHP instalado
 include '../utils.php'; // ← Esta línea es la que falta
 
-
-
-
 use OTPHP\TOTP;
 
 header("Content-Type: application/json; charset=UTF-8");

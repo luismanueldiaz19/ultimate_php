@@ -52,7 +52,6 @@ try {
         throw new Exception("Error al generar número de orden: " . pg_last_error($conn));
     }
     $rowOrden = pg_fetch_assoc($resOrden);
-
     $numOrden = $rowOrden['numero_orden'];
 
     // PASO 2: Calcular totales

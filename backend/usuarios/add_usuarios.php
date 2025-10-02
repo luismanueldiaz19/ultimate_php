@@ -2,80 +2,70 @@
 include '../conexion.php';
 include '../utils.php';
 
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Origin: *");
+
 try {
-    // Decodificar JSON del body
-    $data = json_decode(file_get_contents("php://input"), true);
+    $input = json_decode(file_get_contents("php://input"), true);
 
-    if (!$data) {
-        json_response(["error" => "Entrada inválida, se esperaba JSON"], 400);
+    if (
+        empty($input['nombre']) ||
+        empty($input['username']) ||
+        empty($input['password']) ||
+        empty($input['registed_by'])
+    ) {
+        throw new Exception("Faltan campos obligatorios");
     }
 
-    $username    = trim($data['username'] ?? '');
-    $password    = $data['password'] ?? '';
-    $nombre      = trim($data['usuario_nombre'] ?? '');
-    $registed_by = $data['registed_by'] ?? '';
-    $rol_id      = $data['rol_id'] ?? null;
-    $departamentos_acceso = $data['departamentos_acceso'] ?? [];
+    // Verificar si el username ya existe
+    $checkQuery = "SELECT 1 FROM public.usuarios WHERE username = $1 LIMIT 1";
+    $checkResult = pg_query_params($conn, $checkQuery, [$input['username']]);
 
-
-    // Validar campos obligatorios individualmente
-    $errores = [];
-    if (empty($username))    $errores[] = "username";
-    if (empty($password))    $errores[] = "password";
-    if (empty($nombre))      $errores[] = "usuario_nombre";
-    if (empty($registed_by)) $errores[] = "registed_by";
-
-    if (!empty($errores)) {
-        json_response([
-            "error" => "Faltan campos obligatorios",
-            "campos_faltantes" => $errores
-        ], 400);
+    if (pg_num_rows($checkResult) > 0) {
+        echo json_encode([
+            "success" => false,
+            "message" => "El nombre de usuario ya está registrado"
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
-    // Validación de longitud
-    if (strlen($username) < 3) {
-        json_response(["error" => "El nombre de usuario debe tener al menos 3 caracteres"], 422);
-    }
-    if (strlen($password) < 6) {
-        json_response(["error" => "La contraseña debe tener al menos 6 caracteres"], 422);
-    }
+    $passwordHash = password_hash($input['password'], PASSWORD_DEFAULT);
 
-    // Verificar si ya existe el usuario
-    $res = pg_query_params(
-        $conn, 
-        "SELECT 1 FROM usuarios WHERE username = $1 LIMIT 1", 
-        [$username]
-    );
+    $departAcceso = !empty($input['depart_acceso']) && is_array($input['depart_acceso'])
+        ? '{' . implode(',', array_map('pg_escape_string', $input['depart_acceso'])) . '}'
+        : '{}';
 
-    if (pg_num_rows($res) > 0) {
-        json_response(["error" => "El usuario ya existe"], 409);
-    }
+    $query = "INSERT INTO public.usuarios(
+        nombre, username, password_hash, registed_by, depart_acceso
+    ) VALUES (
+        $1, $2, $3, $4, $5::text[]
+    ) RETURNING id_usuario";
 
-    // Hash seguro de la contraseña
-    $passwordHash = password_hash($password, PASSWORD_BCRYPT, ["cost" => 12]);
+    $params = [
+        $input['nombre'],
+        $input['username'],
+        $passwordHash,
+        $input['registed_by'],
+        $departAcceso
+    ];
 
-    // Insertar usuario
-    $sql = "INSERT INTO usuarios (nombre, username, password_hash, rol_id, registed_by,depart_acceso)
-            VALUES ($1, $2, $3, $4, $5,$6) RETURNING id_usuario";
-
-    $departamentos_acceso_pg = '{' . implode(',', $departamentos_acceso) . '}';
-
-    $result = pg_query_params($conn, $sql, [$nombre, $username, $passwordHash, $rol_id, $registed_by, $departamentos_acceso_pg]);
+    $result = pg_query_params($conn, $query, $params);
 
     if (!$result) {
-        json_response(["error" => "Error al insertar usuario"], 500);
+        throw new Exception("Error al insertar el usuario");
     }
 
-    $newUser = pg_fetch_assoc($result);
+    $inserted = pg_fetch_assoc($result);
 
-    json_response([
-        "ok" => true,
-        "id_usuario" => $newUser['id_usuario'],
-        "username" => $username,
-        "nombre" => $nombre,
-        "rol_id" => $rol_id
-    ]);
+    echo json_encode([
+        "success" => true,
+        "message" => "Usuario creado correctamente",
+        "id_usuario" => $inserted['id_usuario']
+    ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
-    json_response(["error" => "Excepción: " . $e->getMessage()], 500);
+    echo json_encode([
+        "success" => false,
+        "message" => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
