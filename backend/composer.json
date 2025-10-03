@@ -1,6 +1,5 @@
 {
     "require": {
-        "spomky-labs/otphp": "^10.0",
-        "phpoffice/phpspreadsheet": "^2.1"
+        "spomky-labs/otphp": "^10.0"
     }
 }
