@@ -48,7 +48,6 @@ try {
 			pc.ruta_imagen,
 			pc.descripcion_catalogo,
             p.nombre_producto,
-            p.descripcion,
             p.codigo_producto,
             c.nombre_categoria AS categoria,
             pr.nombre_proveedor AS proveedor,

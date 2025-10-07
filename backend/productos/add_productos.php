@@ -29,7 +29,6 @@ try {
 
     // Valores
     $nombre       = trim($data['nombre_producto']);
-    $descripcion  = $data['descripcion'] ?? 'N/A';
     $categoria_id = (int)$data['categoria_id'];
     $proveedor_id = $data['proveedor_id'] ?? null;
     $unidad_id    = $data['unidad_medida_id'] ?? null;
@@ -55,11 +54,11 @@ try {
 
     // Insertar producto
     $sql = "INSERT INTO productos 
-        (nombre_producto, descripcion, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,color)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+        (nombre_producto, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,color)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
         RETURNING id_producto, nombre_producto, codigo_producto, categoria_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo";
 
-    $params = [$nombre,$descripcion,$codigo,$categoria_id,$proveedor_id,$unidad_id,$impuesto_id,$almacen_id,$cuenta_id,$precio_compra,$precio_venta,$stock_actual,$stock_minimo,$activo,$color];
+    $params = [$nombre,$codigo,$categoria_id,$proveedor_id,$unidad_id,$impuesto_id,$almacen_id,$cuenta_id,$precio_compra,$precio_venta,$stock_actual,$stock_minimo,$activo,$color];
     
     $result = pg_query_params($conn, $sql, $params);
 

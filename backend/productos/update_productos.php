@@ -20,7 +20,6 @@ try {
 
     $id_producto = (int)$data['id_producto'];
     $nombre = trim($data['nombre_producto'] ?? '');
-    $descripcion = $data['descripcion'] ?? null;
     $codigo = $data['codigo_producto'] ?? null;
     $categoria_id = $data['categoria_id'] ?? null;
     $proveedor_id = $data['proveedor_id'] ?? null;
@@ -53,7 +52,6 @@ try {
 
     $map = [
         'nombre_producto' => $nombre,
-        'descripcion' => $descripcion,
         'codigo_producto' => $codigo,
         'categoria_id' => $categoria_id,
         'proveedor_id' => $proveedor_id,
