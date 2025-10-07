@@ -48,7 +48,6 @@ $sql = "SELECT
     p.name_logo,
     p.nota_orden,
     item_pre_orden.item_pre_orden_id,
-    item_pre_orden.design_image_id,
     item_pre_orden.id_producto,
     productos.nombre_producto,
     productos.codigo_producto,
@@ -94,7 +93,6 @@ LEFT JOIN public.clientes ON clientes.id_cliente = p.id_cliente
 INNER JOIN public.usuarios ON usuarios.id_usuario = p.id_usuario
 INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_producto
 INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = p.ficha_id
-LEFT JOIN public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
 -- JOIN pagos individuales
 LEFT JOIN public.pagos_pre_orden pagos ON pagos.pre_orden_id = p.pre_orden_id
 
@@ -175,13 +173,13 @@ try {
 
         if (empty($yaExiste) && !empty($idItem)) {
             $designImage = [
-                'design_image_id' => $item['design_image_id'],
-                'design_jobs_id' => $item['design_jobs_id'],
-                'comment_imagen' => $item['comment_imagen'],
-                'body_ubicacion' => $item['body_ubicacion'],
-                'tipo_trabajo' => $item['tipo_trabajo'],
-                'ruta' => $item['ruta'],
-                'tamano' => $item['tamano']
+                // 'design_image_id' => $item['design_image_id'],
+                // 'design_jobs_id' => $item['design_jobs_id'],
+                // 'comment_imagen' => $item['comment_imagen'],
+                // 'body_ubicacion' => $item['body_ubicacion'],
+                // 'tipo_trabajo' => $item['tipo_trabajo'],
+                // 'ruta' => $item['ruta'],
+                // 'tamano' => $item['tamano']
             ];
 
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [

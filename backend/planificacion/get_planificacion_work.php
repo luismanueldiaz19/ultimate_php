@@ -52,7 +52,6 @@ $placeholdersStr = implode(",", $placeholders);
             departments.type,
             productos.codigo_producto,
             productos.nombre_producto,
-            m.design_image_id,
             m.id_producto,
             m.item_pre_orden_id,
             m.department_id,
@@ -89,7 +88,6 @@ $placeholdersStr = implode(",", $placeholders);
         INNER JOIN public.clientes ON clientes.id_cliente = pre_orden.id_cliente
         INNER JOIN public.departments ON departments.department_id = m.department_id
         INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = pre_orden.ficha_id
-        left join public.design_images ON design_images.design_image_id = item_pre_orden.design_image_id
         WHERE pre_orden.fecha_entrega <= $1  AND departments.type IN ($placeholdersStr)
         AND m.estado_planificacion_work <> 'COMPLETADO'
         ORDER BY departments.name_department ASC";

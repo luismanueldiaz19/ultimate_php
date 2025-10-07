@@ -32,7 +32,6 @@ $sql = "SELECT
     p.is_facturado,
     p.nota_orden,
     item_pre_orden.item_pre_orden_id,
-    item_pre_orden.design_image_id,
     item_pre_orden.id_producto,
     productos.nombre_producto,
     productos.codigo_producto,
@@ -64,8 +63,6 @@ INNER JOIN public.productos
     ON productos.id_producto = item_pre_orden.id_producto
 INNER JOIN public.list_ficha_available 
     ON list_ficha_available.ficha_id = p.ficha_id
-LEFT JOIN public.design_images 
-    ON design_images.design_image_id = item_pre_orden.design_image_id
 WHERE p.estado_general != 'ENTREGADO' ORDER BY p.num_orden ASC";
 
 try {
@@ -117,7 +114,6 @@ try {
         }
     
         $designImage = [
-            'design_image_id' => $item['design_image_id'],
             'design_jobs_id' => $item['design_jobs_id'],
             'comment_imagen' => $item['comment_imagen'],
             'body_ubicacion' => $item['body_ubicacion'],
