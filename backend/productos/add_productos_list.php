@@ -1,93 +1,90 @@
 <?php
 include '../conexion.php';
 include '../utils.php';
-include '../auditoria/auditoria_log.php';
+
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 
 try {
     $productos = json_decode(file_get_contents("php://input"), true) ?? [];
 
-    if (!is_array($productos)) {
+    if (!is_array($productos) || empty($productos)) {
         json_response(["success" => false, "message" => "Se esperaba una lista de productos"], 400);
     }
 
-    $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta', 'proveedor_id', 'unidad_medida_id', 'impuesto_id', 'almacen_id', 'cuenta_contable_id', 'id_usuario', 'productos_catalogos_id'];
     $insertados = [];
-    $errores = [];
 
-    foreach ($productos as $index => $data) {
-        $missingFields = [];
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim($data[$field]) === '') {
-                $missingFields[] = $field;
+    foreach ($productos as $p) {
+        $usuarioId = $p['id_usuario'] ?? null;
+        $nombre = trim($p['nombre_producto'] ?? '');
+        $categoria_id = $p['categoria_id'] ?? null;
+
+        if (!$usuarioId || !$nombre || !$categoria_id) {
+            continue; // Saltar si faltan campos obligatorios
+        }
+
+        // Generar código de producto
+        $res = pg_query_params($conn, "SELECT generar_codigo_producto($1) AS codigo", [$categoria_id]);
+        $row = pg_fetch_assoc($res);
+        $codigo_producto = $row['codigo'] ?? null;
+
+        if (!$codigo_producto) {
+            continue; // Saltar si no se pudo generar código
+        }
+
+        // Preparar campos
+        $map = [
+            'nombre_producto' => $nombre,
+            'codigo_producto' => $codigo_producto,
+            'categoria_id' => $categoria_id,
+            'proveedor_id' => $p['proveedor_id'] ?? null,
+            'unidad_medida_id' => $p['unidad_medida_id'] ?? null,
+            'impuesto_id' => $p['impuesto_id'] ?? null,
+            'almacen_id' => $p['almacen_id'] ?? null,
+            'cuenta_contable_id' => $p['cuenta_contable_id'] ?? null,
+            'costo' => $p['costo'] ?? null,
+            'precio_one' => $p['precio_one'] ?? null,
+            'precio_two' => $p['precio_two'] ?? null,
+            'precio_three' => $p['precio_three'] ?? null,
+            'tela' => $p['tela'] ?? null,
+            'department' => $p['department'] ?? null
+        ];
+
+        $fields = [];
+        $placeholders = [];
+        $params = [];
+        $i = 1;
+
+        foreach ($map as $key => $val) {
+            if ($val !== null) {
+                $fields[] = $key;
+                $placeholders[] = "$$i";
+                $params[] = $val;
+                $i++;
             }
         }
 
-        if (!empty($missingFields)) {
-            $errores[] = [
-                "index" => $index,
-                "message" => "Faltan campos obligatorios",
-                "faltantes" => $missingFields
-            ];
-            continue;
-        }
+        $fields[] = 'creado_en';
+        $placeholders[] = 'NOW()';
 
-        // Valores
-        $nombre        = trim($data['nombre_producto']);
-        $categoria_id  = (int)$data['categoria_id'];
-        $proveedor_id  = $data['proveedor_id'];
-        $unidad_id     = $data['unidad_medida_id'];
-        $impuesto_id   = $data['impuesto_id'];
-        $almacen_id    = $data['almacen_id'];
-        $cuenta_id     = $data['cuenta_contable_id'];
-        $precio_compra = (float)$data['precio_compra'];
-        $precio_venta  = (float)$data['precio_venta'];
-        $stock_actual  = (float)($data['stock_actual'] ?? 0);
-        $stock_minimo  = (float)($data['stock_minimo'] ?? 0);
-        $activo        = isset($data['activo']) ? ($data['activo'] ? 't' : 'f') : 't';
-        $usuarioId     = $data['id_usuario'];
-        $productos_catalogos_id   = $data['productos_catalogos_id'];
-        $color = isset($data['color']) && is_array($data['color']) ? json_encode($data['color']) : null;
+        $sql = "INSERT INTO productos (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ") RETURNING *";
 
-
-        // Código automático
-        if (empty($data['codigo_producto'])) {
-            $res = pg_query_params($conn, "SELECT generar_codigo_producto($1) AS codigo", [$categoria_id]);
-            $row = pg_fetch_assoc($res);
-            $codigo = $row['codigo'] ?? 'N/A';
-        } else {
-            $codigo = trim($data['codigo_producto']);
-        }
-
-        // Insertar
-        $sql = "INSERT INTO productos 
-            (nombre_producto, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,productos_catalogos_id,color)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-            RETURNING id_producto, nombre_producto, codigo_producto, categoria_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo, color";
-
-        $params = [$nombre,$codigo, $categoria_id, $proveedor_id, $unidad_id, $impuesto_id, $almacen_id, $cuenta_id, $precio_compra, $precio_venta, $stock_actual, $stock_minimo, $activo,$productos_catalogos_id, $color];
         $result = pg_query_params($conn, $sql, $params);
-
-        if (!$result) {
-            $errores[] = [
-                "index" => $index,
-                "message" => "Error al crear producto: " . pg_last_error($conn)
-            ];
-            continue;
+        if ($result) {
+            $insertados[] = pg_fetch_assoc($result);
         }
-
-        $newProduct = pg_fetch_assoc($result);
-        registrarAuditoria($conn, $usuarioId, 'INSERT', 'productos', null, $newProduct);
-        $insertados[] = $newProduct;
     }
 
     json_response([
         "success" => true,
-        "insertados" => $insertados,
-        "errores" => $errores
+        "message" => "Productos insertados correctamente",
+        "insertados" => $insertados
     ]);
 
 } catch (Exception $e) {
-    json_response(["success" => false, "message" => "Excepción: " . $e->getMessage()], 500);
+    json_response([
+        "success" => false,
+        "message" => "Excepción: " . $e->getMessage()
+    ], 500);
 }
+?>
