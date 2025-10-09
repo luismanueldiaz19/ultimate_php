@@ -1,7 +1,7 @@
 <?php
 include '../conexion.php';
 include '../utils.php';
-
+error_reporting(E_ALL & ~E_WARNING);
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 
@@ -67,18 +67,30 @@ try {
         $fields[] = 'creado_en';
         $placeholders[] = 'NOW()';
 
-        $sql = "INSERT INTO productos (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ") RETURNING *";
+        $sql = "INSERT INTO productos(" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ") RETURNING *";
 
-        $result = pg_query_params($conn, $sql, $params);
-        if ($result) {
-            $insertados[] = pg_fetch_assoc($result);
-        }
+       $result = @pg_query_params($conn, $sql, $params);
+
+if ($result === false) {
+    $error = pg_last_error($conn);
+    if (strpos($error, 'duplicate key value') !== false) {
+        // Silenciar y continuar
+        continue;
+    } else {
+        // Lanzar otros errores
+        throw new Exception($error);
+    }
+}
+
+
+
+
+
     }
 
     json_response([
         "success" => true,
-        "message" => "Productos insertados correctamente",
-        "insertados" => $insertados
+        "message" => "Productos insertados correctamente"
     ]);
 
 } catch (Exception $e) {
