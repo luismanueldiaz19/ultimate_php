@@ -19,17 +19,10 @@ if (!$usuarioId) {
 pg_query($conn, "BEGIN");
 
 try {
-    $sqlJob = "INSERT INTO design_jobs 
-        (institution_name, version, notes, color_scheme, pantones) 
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *";
+    $sqlJob = "INSERT INTO design_company (institution_name) VALUES ($1) RETURNING *";
 
     $paramsJob = [
-        $data['institution_name'],
-        $data['version'] ?? 'v1',
-        $data['notes'] ?? null,
-        isset($data['color_scheme']) ? phpArrayToPgArray($data['color_scheme']) : null,
-        isset($data['pantones']) ? phpArrayToPgArray($data['pantones']) : null
+        $data['institution_name']
     ];
 
     $resultJob = @pg_query_params($conn, $sqlJob, $paramsJob);
@@ -58,9 +51,9 @@ try {
     json_response(["success" => false, "message" => $e->getMessage()], 500);
 }
 
-function phpArrayToPgArray($array) {
-    if (empty($array)) return null;
-    return '{' . implode(',', array_map(function($v) {
-        return '"' . addslashes($v) . '"';
-    }, $array)) . '}';
-}
+// function phpArrayToPgArray($array) {
+//     if (empty($array)) return null;
+//     return '{' . implode(',', array_map(function($v) {
+//         return '"' . addslashes($v) . '"';
+//     }, $array)) . '}';
+// }

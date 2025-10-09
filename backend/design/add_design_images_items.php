@@ -8,7 +8,7 @@ if (!isset($_FILES['image'])) {
 }
 
 // Validar campos requeridos y que no estén vacíos
-$campos = ['design_jobs_id','comment_imagen', 'body_ubicacion', 'tipo_trabajo'];
+$campos = ['design_tipo_id','comment_imagen', 'body_ubicacion'];
 $faltantes = [];
 
 foreach ($campos as $campo) {
@@ -30,10 +30,9 @@ if (!empty($faltantes)) {
 // Llamar la función con todos los argumentos
 $resultado = subirArchivo(
     $_FILES['image'],
-    $_POST['design_jobs_id'],
+    $_POST['design_tipo_id'],
     $_POST['comment_imagen'],
-    $_POST['body_ubicacion'],
-    $_POST['tipo_trabajo']
+    $_POST['body_ubicacion']
 );
 
 // Evaluar si fue exitoso

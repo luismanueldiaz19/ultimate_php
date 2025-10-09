@@ -3,10 +3,9 @@ include '../conexion.php';
 include '../utils.php';
 function subirArchivo(
     $file,
-    $design_jobs_id,
+    $design_tipo_id, 
     $comment_imagen,
     $body_ubicacion,
-    $tipo_trabajo,
     $directorio = 'cargas_pruebas/'
 ) {
     global $conn;
@@ -42,29 +41,15 @@ function subirArchivo(
 
     $mime = mime_content_type($rutaFinal);
     $tamano = filesize($rutaFinal);
-    $created_at = date('Y-m-d H:i:s');
-    $updated_at = $created_at;
 
-    $sql = "INSERT INTO public.design_images(
-        design_jobs_id, created_at, updated_at,
-        comment_imagen, body_ubicacion, tipo_trabajo,
-        nombre_original, nombre_modificado, ruta, mime, tamano
-    ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
-    ) RETURNING design_image_id";
+    $sql = "INSERT INTO public.design_images_items(design_tipo_id, comment_imagen, body_ubicacion, ruta) VALUES (
+        $1, $2, $3, $4) RETURNING design_images_items_id";
 
     $params = [
-        $design_jobs_id,
-        $created_at,
-        $updated_at,
+        $design_tipo_id,
         $comment_imagen,
         $body_ubicacion,
-        $tipo_trabajo,
-        $file["name"],
-        $nombreModificado,
-        $rutaFinal,
-        $mime,
-        $tamano
+        $rutaFinal
     ];
 
     $stmt = @pg_query_params($conn, $sql, $params);
@@ -81,11 +66,11 @@ function subirArchivo(
     pg_query($conn, "COMMIT");
 
     $result = pg_fetch_assoc($stmt);
-    $idInsertado = $result['design_image_id'] ?? null;
+    $idInsertado = $result['design_images_items_id'] ?? null;
 
     return [
         'success' => true,
-        'design_image_id' => $idInsertado,
+        'design_images_items_id' => $idInsertado,
         'nombre_modificado' => $nombreModificado,
         'ruta' => $rutaFinal,
         'mime' => $mime,
