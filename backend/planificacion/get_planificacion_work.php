@@ -76,11 +76,7 @@ $placeholdersStr = implode(",", $placeholders);
             clientes.email,
             clientes.telefono,
             clientes.direccion,
-            item_pre_orden.estado_item,
-            design_images.comment_imagen,
-            design_images.body_ubicacion, 
-            design_images.tipo_trabajo,
-            design_images.ruta
+            item_pre_orden.estado_item
         FROM public.planificacion_work AS m
         INNER JOIN public.productos ON productos.id_producto = m.id_producto
         INNER JOIN public.item_pre_orden ON item_pre_orden.item_pre_orden_id = m.item_pre_orden_id

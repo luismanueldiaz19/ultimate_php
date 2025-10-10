@@ -11,106 +11,73 @@ try {
     if (!is_array($data) || empty($data)) {
         json_response([
             "success" => false,
-            "message" => "Se esperaba una lista de planificaciones",
+            "message" => "Se esperaba una lista de planificaciones"
         ], 400);
     }
-    $resultados = [];
-    $todosExitosos = true;
-    $itemPreOrdenIdGlobal = null;
+
+    $enviadosProduccion = 0;
+    $yaExistentes = 0;
+    $departamentosNoEncontrados = [];
 
     foreach ($data as $index => $item) {
-        $requiredFields = ['item_pre_orden_id', 'department_id', 'design_image_id', 'id_producto', 'comentario_work'];
-        $missingFields = [];
+        $itemId = intval($item['item_pre_orden_id'] ?? 0);
+        $nombreDepartamento = strtolower(trim($item['department'] ?? ''));
+        $notaProducto = trim($item['nota_producto'] ?? '');
+        $id_producto = trim($item['id_producto'] ?? '');
 
-        foreach ($requiredFields as $field) {
-            if (!isset($item[$field]) || trim($item[$field]) === '') {
-                $missingFields[] = $field;
-            }
+        if ($itemId === 0 || $nombreDepartamento === '') {
+            continue; // Datos incompletos, ignorar
         }
 
-        if (!empty($missingFields)) {
-            $resultados[] = [
-                "index" => $index,
-                "success" => false,
-                "message" => "Faltan campos obligatorios",
-                "faltantes" => $missingFields
+        // Buscar department_id por nombre
+        $sqlDept = "SELECT department_id FROM public.departments WHERE LOWER(name_department) = $1 LIMIT 1";
+        $resDept = pg_query_params($conn, $sqlDept, [$nombreDepartamento]);
+
+        if (pg_num_rows($resDept) === 0) {
+            $departamentosNoEncontrados[] = [
+                "id_producto" => $id_producto,
+                "item_pre_orden_id" => $itemId,
+                "department" => $nombreDepartamento,
+                "nota_producto" => $notaProducto
             ];
-            $todosExitosos = false;
             continue;
         }
 
-        $itemId = intval($item['item_pre_orden_id']);
-        $departmentId = trim($item['department_id']);
-        $designImageId = intval($item['design_image_id']);
-        $productoId = intval($item['id_producto']);
-        $comentario = trim($item['comentario_work']);
+        $departmentId = pg_fetch_result($resDept, 0, 'department_id');
 
-        // Guardar el item_pre_orden_id para el UPDATE final
-        if ($itemPreOrdenIdGlobal === null) {
-            $itemPreOrdenIdGlobal = $itemId;
-        }
+        // Verificar si ya existe planificación
+        $sqlCheck = "SELECT 1 FROM public.planificacion_work WHERE item_pre_orden_id = $1 AND department_id = $2 LIMIT 1";
+        $resCheck = pg_query_params($conn, $sqlCheck, [$itemId, $departmentId]);
 
-        $checkSql = "SELECT 1 FROM planificacion_work WHERE item_pre_orden_id = $1 AND department_id = $2 LIMIT 1";
-        $checkParams = [$itemId, $departmentId];
-        $checkResult = pg_query_params($conn, $checkSql, $checkParams);
-
-        if (pg_num_rows($checkResult) > 0) {
-            $resultados[] = [
-                "index" => $index,
-                "success" => false,
-                "message" => "Ya existe una planificación para ese item y departamento"
-            ];
-            $todosExitosos = false;
+        if (pg_num_rows($resCheck) > 0) {
+            $yaExistentes++;
             continue;
         }
 
-        $sql = "INSERT INTO public.planificacion_work (
-                    item_pre_orden_id, department_id, design_image_id, id_producto, comentario_work
-                ) VALUES ($1, $2, $3, $4, $5)
-                RETURNING planificacion_work_id";
+        // Insertar planificación
+        $sqlInsert = "INSERT INTO public.planificacion_work (id_producto, item_pre_orden_id, department_id, comentario_work)
+                      VALUES ($1, $2, $3, $4)";
+        $paramsInsert = [$id_producto, $itemId, $departmentId, $notaProducto];
+        $resInsert = pg_query_params($conn, $sqlInsert, $paramsInsert);
 
-        $params = [$itemId, $departmentId, $designImageId, $productoId, $comentario];
-        $insertResult = pg_query_params($conn, $sql, $params);
-
-        if (!$insertResult) {
-            $resultados[] = [
-                "index" => $index,
-                "success" => false,
-                "message" => "Error al insertar: " . pg_last_error($conn)
-            ];
-            $todosExitosos = false;
-            continue;
-        }
-
-        $inserted = pg_fetch_assoc($insertResult);
-        $resultados[] = [
-            "index" => $index,
-            "success" => true,
-            "message" => "Planificación creada exitosamente",
-            "planificacion" => $inserted
-        ];
-    }
-
-    // Si todo fue exitoso, aplicar el UPDATE
-    if ($todosExitosos && $itemPreOrdenIdGlobal !== null) {
-        $updateSql = "UPDATE public.item_pre_orden SET is_produccion = true WHERE item_pre_orden_id = $1";
-        $updateResult = pg_query_params($conn, $updateSql, [$itemPreOrdenIdGlobal]);
-
-        if (!$updateResult) {
-            json_response([
-                "success" => false,
-                "message" => "Error al actualizar is_produccion: " . pg_last_error($conn),
-                "resultados" => $resultados
-            ], 500);
+        if ($resInsert) {
+            // Actualizar is_produccion
+            $sqlUpdate = "UPDATE public.item_pre_orden SET is_produccion = true WHERE item_pre_orden_id = $1";
+            pg_query_params($conn, $sqlUpdate, [$itemId]);
+            $enviadosProduccion++;
         }
     }
 
+    // Reporte final
     json_response([
         "success" => true,
-        "message" => $todosExitosos
-            ? "Todas las planificaciones fueron creadas y se actualizó is_produccion"
-            : "Algunas planificaciones fallaron, no se actualizó is_produccion",
-        "resultados" => $resultados
+        "message" => "Proceso completado",
+        "resumen" => [
+            "enviados_a_produccion" => $enviadosProduccion,
+            "ya_existentes" => $yaExistentes,
+            "departamentos_no_encontrados" => count($departamentosNoEncontrados),
+            "detalle_departamentos_fallidos" => $departamentosNoEncontrados
+        ]
     ]);
 } catch (Exception $e) {
     json_response([

@@ -51,6 +51,7 @@ $sql = "SELECT
     item_pre_orden.id_producto,
     productos.nombre_producto,
     productos.codigo_producto,
+    productos.department,
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
     item_pre_orden.itbs,
@@ -195,6 +196,7 @@ try {
                 'estado_item' => $item['estado_item'],
                 'creado_item' => $item['creado_item'],
                 'is_produccion' => $item['is_produccion'],
+                'department' => $item['department'],
                 'DesignImage' => $designImage,
             ];
         }
