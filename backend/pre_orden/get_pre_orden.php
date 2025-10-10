@@ -45,13 +45,13 @@ $sql = "SELECT
     
     clientes.nombre as nombre_cliente,
     clientes.telefono,
-    usuarios.nombre as usuario_nombre,
-    design_images.design_jobs_id,
-    design_images.comment_imagen,
-    design_images.body_ubicacion,
-    design_images.tipo_trabajo,
-    design_images.ruta, 
-    design_images.tamano
+    usuarios.nombre as usuario_nombre
+    -- design_images.design_jobs_id,
+    -- design_images.comment_imagen,
+    -- design_images.body_ubicacion,
+    -- design_images.tipo_trabajo,
+    -- design_images.ruta, 
+    -- design_images.tamano
 FROM public.pre_orden p
 LEFT JOIN public.item_pre_orden 
     ON item_pre_orden.pre_orden_id = p.pre_orden_id
@@ -113,14 +113,14 @@ try {
             ];
         }
     
-        $designImage = [
-            'design_jobs_id' => $item['design_jobs_id'],
-            'comment_imagen' => $item['comment_imagen'],
-            'body_ubicacion' => $item['body_ubicacion'],
-            'tipo_trabajo' => $item['tipo_trabajo'],
-            'ruta' => $item['ruta'],
-            'tamano' => $item['tamano']
-        ];
+        // $designImage = [
+        //     'design_jobs_id' => $item['design_jobs_id'],
+        //     'comment_imagen' => $item['comment_imagen'],
+        //     'body_ubicacion' => $item['body_ubicacion'],
+        //     'tipo_trabajo' => $item['tipo_trabajo'],
+        //     'ruta' => $item['ruta'],
+        //     'tamano' => $item['tamano']
+        // ];
 
         // Agregamos el ítem a la orden correspondiente
         $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [   
@@ -137,7 +137,7 @@ try {
             'estado_item' => $item['estado_item'],
             'creado_item' => $item['creado_item'],
             
-            'DesignImage' => $designImage,
+            'DesignImage' => [],
         ];
     }
 

@@ -63,7 +63,6 @@ try {
         $precio_neto = $item['precio'] / (1 + ($item['itbs'] / 100));
         $linea_bruto = $precio_neto * $item['cant'];
         $linea_itbis = ($item['precio'] - $precio_neto) * $item['cant'];
-
         $total_bruto += $linea_bruto;
         $total_itbis += $linea_itbis;
     }
@@ -99,8 +98,8 @@ try {
     foreach ($data['item_orden'] as $item) {
         $resDetalle = pg_query_params($conn,
             "INSERT INTO item_pre_orden 
-            (pre_orden_id, id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en,tela)
-            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW(), $7)",
+            (pre_orden_id, id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en,tela,design_tipo_id)
+            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW(), $7,$8)",
             [
                 $preOrdenId,
                 $item['id_producto'],
@@ -109,6 +108,7 @@ try {
                 $item['itbs'],
                 $item['cant'],
                 $item['tela'],
+                $item['design_tipo_id'],
             ]
         );
 
