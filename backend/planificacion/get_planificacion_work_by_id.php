@@ -54,10 +54,12 @@ if (empty($department_id) || empty($planificacion_work_id)) {
             clientes.telefono,
             clientes.direccion,
             item_pre_orden.estado_item,
-            design_images.comment_imagen,
-            design_images.body_ubicacion, 
-            design_images.tipo_trabajo,
-            design_images.ruta
+			item_pre_orden.design_tipo_id,
+			design_tipo.tipo_trabajo,
+			design_images_items.design_images_items_id,
+			design_images_items.comment_imagen, 
+			design_images_items.body_ubicacion,
+			design_images_items.ruta
         FROM public.planificacion_work AS m
         INNER JOIN public.productos ON productos.id_producto = m.id_producto
         INNER JOIN public.item_pre_orden ON item_pre_orden.item_pre_orden_id = m.item_pre_orden_id
@@ -65,15 +67,15 @@ if (empty($department_id) || empty($planificacion_work_id)) {
         INNER JOIN public.clientes ON clientes.id_cliente = pre_orden.id_cliente
         INNER JOIN public.departments ON departments.department_id = m.department_id
         INNER JOIN public.list_ficha_available ON list_ficha_available.ficha_id = pre_orden.ficha_id
+        INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
+		INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
         WHERE m.planificacion_work_id = $1  AND m.department_id = $2
         ORDER BY departments.name_department ASC";
 
-    // Ejecutar consulta segura
-    // $params = [$fechaInicio];
-    $params = [$planificacion_work_id, $department_id];
 
 
-    $result = @pg_query_params($conn, $sql, $params);
+
+    $result = pg_query_params($conn, $sql, [$planificacion_work_id,$department_id ]);
 
     if (!$result) {
         throw new Exception("Error en la consulta: " . pg_last_error($conn));
@@ -82,19 +84,93 @@ if (empty($department_id) || empty($planificacion_work_id)) {
     $planificaciones = pg_fetch_all($result) ?? [];
 
 
-    if (count($planificaciones) === 0) {
-    json_response([
-        "success" => false,
-        "message" => "No se encontró ninguna planificación con los parámetros proporcionados",
-        "planificaciones" => null,
-        "total" => 0
-    ], 404); // Puedes usar 404 o 200 según tu convención
-    exit;
+
+
+   $agrupado = [];
+
+foreach ($planificaciones as $row) {
+    $workId = $row['planificacion_work_id'];
+    $designId = $row['design_tipo_id'];
+
+    // Inicializar agrupación por trabajo
+    if (!isset($agrupado[$workId])) {
+
+
+        $dataFichas = [
+                'ficha_id' => $row['ficha_id'],
+                'ficha' => $row['ficha'],
+                'color_ficha' => json_decode($row['color_ficha'], true),
+            ];
+        $agrupado[$workId] = [
+    "planificacion_work_id" => $workId,
+    "name_department" => $row['name_department'],
+    "path_image" => $row['path_image'],
+    "type" => $row['type'],
+    "codigo_producto" => $row['codigo_producto'],
+    "nombre_producto" => $row['nombre_producto'],
+    "id_producto" => $row['id_producto'],
+    "item_pre_orden_id" => $row['item_pre_orden_id'],
+    "department_id" => $row['department_id'],
+    "estado_planificacion_work" => $row['estado_planificacion_work'],
+    "work_creado_en" => $row['work_creado_en'],
+    "comentario_work" => $row['comentario_work'],
+     "Ficha" => $dataFichas,
+    "nota_producto" => $row['nota_producto'],
+    "cant" => $row['cant'],
+    "tela" => $row['tela'],
+    "name_logo" => $row['name_logo'],
+    "num_orden" => $row['num_orden'],
+    
+    "fecha_entrega" => $row['fecha_entrega'],
+    "id_usuario" => $row['id_usuario'],
+    "estado_hoja" => $row['estado_hoja'],
+    "nombre" => $row['nombre'],
+    "rnc_cedula" => $row['rnc_cedula'],
+    "tipo_entidad" => $row['tipo_entidad'],
+    "tipo_identificacion" => $row['tipo_identificacion'],
+    "email" => $row['email'],
+    "telefono" => $row['telefono'],
+    "direccion" => $row['direccion'],
+    "estado_item" => $row['estado_item'], 
+    "tipo_trabajo" => $row['tipo_trabajo'],           
+    "designTipo" => []
+
+
+
+];
+    }
+
+    // Buscar si ya existe ese design_tipo_id dentro del trabajo
+    $designsRef = &$agrupado[$workId]['designTipo'];
+    
+    $designIndex = array_search($designId, array_column($designsRef, 'design_tipo_id'));
+
+    if ($designIndex === false) {
+        // Si no existe, lo creamos
+        $designsRef[] = [
+            "design_tipo_id" => $designId,
+            "tipo_trabajo" => $row['tipo_trabajo'],
+            "designImagesItems" => []
+        ];
+        $designIndex = count($designsRef) - 1;
+    }
+
+    // Agregar imagen al grupo correspondiente
+    $designsRef[$designIndex]['designImagesItems'][] = [
+        "design_images_items_id" => $row['design_images_items_id'],
+        "comment_imagen" => $row['comment_imagen'],
+        "body_ubicacion" => $row['body_ubicacion'],
+        "ruta" => $row['ruta']
+    ];
 }
+
+// Reindexar para respuesta limpia
+$agrupado = array_values($agrupado);
+
     json_response([
         "success" => true,
-        "planificaciones" => $planificaciones[0],
-        "total" => count($planificaciones)
+        "planificaciones" => $agrupado[0] ?? new stdClass(),
+        "total" => count($agrupado)
     ]);
 } catch (Exception $e) {
     json_response([

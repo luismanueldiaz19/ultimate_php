@@ -73,57 +73,78 @@ try {
 
     $data = pg_fetch_all($res) ?? [];
 
-    // Agrupar por name_trabajo
-    $grouped = [];
+   $grouped = [];
 
-    foreach ($data as $row) {
-        $key = $row['hoja_produccion_id'];
-        
-        if (!isset($grouped[$key])) {
-            $grouped[$key] = [
-                'tipo_trabajo_id' => $row['tipo_trabajo_id'],
-                'hoja_produccion_id' => $row['hoja_produccion_id'],
-                'start_date' => $row['start_date'],
-                'end_date' => $row['end_date'],
-                'created_at' => $row['created_at'],
-                'full_name' => $row['full_name'],
-                'estado_hoja' => $row['estado_hoja'],
-                'usuario_id' => $row['usuario_id'],
-                'observaciones_hoja' => $row['observaciones_hoja'],
-                'hoja_produccion_campos_id' => $row['hoja_produccion_campos_id'],
-                'name_trabajo' => $row['name_trabajo'],
-                'url_imagen' => $row['url_imagen'],
-                'area_trabajo' => $row['area_trabajo'],
-                'id_depart' => $row['id_depart'],
-                'name_department' => $row['name_department'],
-                'orden_items_id' => $row['orden_items_id'],
-                'num_orden' => $row['num_orden'],
-                'ficha' => $row['ficha'],
-                'name_logo' => $row['name_logo'],
-                'id_cliente' => $row['id_cliente'],
-                'cant_orden' => $row['cant_orden'],
-                'nombre_cliente' => $row['nombre_cliente'],
-                'campos' => []
-            ];
-        }
+foreach ($planificaciones as $row) {
+    $key = $row['planificacion_work_id'];
 
-        if (!empty($row['campo_id'])) {
-            $grouped[$key]['campos'][] = [
-                'hoja_produccion_campos_id' => $row['hoja_produccion_campos_id'],
-                'campo_id' => $row['campo_id'],
-                'nombre_campo' => $row['nombre_campo'],
-                'tipo_dato' => $row['tipo_dato'],
-                'cant' => $row['cant'],
-                'cant_orden' => $row['cant_orden']
-            ];
-        }
+    if (!isset($grouped[$key])) {
+        $grouped[$key] = [
+            'planificacion_work_id' => $row['planificacion_work_id'],
+            'department_id' => $row['department_id'],
+            'name_department' => $row['name_department'],
+            'type' => $row['type'],
+            'codigo_producto' => $row['codigo_producto'],
+            'nombre_producto' => $row['nombre_producto'],
+            'id_producto' => $row['id_producto'],
+            'item_pre_orden_id' => $row['item_pre_orden_id'],
+            'estado_planificacion_work' => $row['estado_planificacion_work'],
+            'work_creado_en' => $row['work_creado_en'],
+            'comentario_work' => $row['comentario_work'],
+            'ficha' => $row['ficha'],
+            'color_ficha' => $row['color_ficha'],
+            'nota_producto' => $row['nota_producto'],
+            'cant' => $row['cant'],
+            'tela' => $row['tela'],
+            'name_logo' => $row['name_logo'],
+            'num_orden' => $row['num_orden'],
+            'fecha_entrega' => $row['fecha_entrega'],
+            'id_usuario' => $row['id_usuario'],
+            'estado_hoja' => $row['estado_hoja'],
+            'nombre' => $row['nombre'],
+            'rnc_cedula' => $row['rnc_cedula'],
+            'tipo_entidad' => $row['tipo_entidad'],
+            'tipo_identificacion' => $row['tipo_identificacion'],
+            'email' => $row['email'],
+            'telefono' => $row['telefono'],
+            'direccion' => $row['direccion'],
+            'estado_item' => $row['estado_item'],
+            'designs' => []
+        ];
     }
 
-    // Convertir a array indexado
-    $result = array_values($grouped);
+    // Agrupar por design_tipo_id dentro del planificacion_work_id
+    $designKey = $row['design_tipo_id'];
+    $designsRef = &$grouped[$key]['designs'];
+
+    if (!isset($designsRef[$designKey])) {
+        $designsRef[$designKey] = [
+            'design_tipo_id' => $row['design_tipo_id'],
+            'tipo_trabajo' => $row['tipo_trabajo'],
+            'imagenes' => []
+        ];
+    }
+
+    // Agregar imagen si existe
+    if (!empty($row['design_images_items_id'])) {
+        $designsRef[$designKey]['imagenes'][] = [
+            'design_images_items_id' => $row['design_images_items_id'],
+            'comment_imagen' => $row['comment_imagen'],
+            'body_ubicacion' => $row['body_ubicacion'],
+            'ruta' => $row['ruta']
+        ];
+    }
+}
+
+// Convertir a array indexado
+$result = array_values($grouped);
+foreach ($result as &$item) {
+    $item['designs'] = array_values($item['designs']);
+}
 
     json_response([
         'success' => true,
+         "planificaciones" => $result,
         'count' => count($result),
         'data' => $result
     ]);

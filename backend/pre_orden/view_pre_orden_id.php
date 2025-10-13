@@ -34,6 +34,8 @@ $sql = "SELECT
     list_ficha_available.ficha, 
     list_ficha_available.color_ficha,
     p.num_orden,
+    p.num_comprobante,
+    p.fecha_emision,
     p.name_logo,
     p.id_usuario,
     p.id_cliente,
@@ -63,13 +65,7 @@ $sql = "SELECT
     clientes.nombre as nombre_cliente,
     clientes.telefono,
     usuarios.nombre as usuario_nombre,
-    -- design_images.design_jobs_id,
-    -- design_images.comment_imagen,
-    -- design_images.body_ubicacion,
-    -- design_images.tipo_trabajo,
-    -- design_images.ruta, 
-    -- design_images.tamano,
-    -- Pagos individuales
+
     pagos.pago_id,
     pagos.monto_pago,
     pagos.metodo_pago,
@@ -144,6 +140,8 @@ try {
 
             $agrupadoPorOrden[$numOrden] = [
                 'num_orden' => $numOrden,
+                'num_comprobante' =>  $item['num_comprobante'],
+                'fecha_emision' =>  $item['fecha_emision'],
                 'pre_orden_id' => $item['pre_orden_id'],
                 'ficha' => $dataFichas,
                 'cliente' => $dataClient,
@@ -173,6 +171,7 @@ try {
         });
 
         if (empty($yaExiste) && !empty($idItem)) {
+            
             $designImage = [
                 // 'design_image_id' => $item['design_image_id'],
                 // 'design_jobs_id' => $item['design_jobs_id'],
