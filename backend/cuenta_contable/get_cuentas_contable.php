@@ -17,14 +17,14 @@ try {
     $filters = [];
     $params = [];
 
-    if (!empty($data['nombre_contable'])) {
-        $params[] = '%' . $data['nombre_contable'] . '%';
-        $filters[] = "nombre_contable ILIKE $" . count($params);
+    if (!empty($data['codigo'])) {
+        $params[] = '%' . $data['codigo'] . '%';
+        $filters[] = "codigo ILIKE $" . count($params);
     }
 
-    if (!empty($data['codigo_contable'])) {
-        $params[] = '%' . $data['codigo_contable'] . '%';
-        $filters[] = "codigo_contable ILIKE $" . count($params);
+    if (!empty($data['codigo'])) {
+        $params[] = '%' . $data['codigo'] . '%';
+        $filters[] = "codigo ILIKE $" . count($params);
     }
 
     $whereClause = '';
@@ -34,17 +34,10 @@ try {
 
     // Consulta principal
     $sql = "
-        SELECT 
-            id_cuenta,
-            codigo_contable,
-            nombre_contable,
-            tipo_cuenta_contable,
-            statu_contable,
-            creado_en_contable,
-            actualizado_en_contable
-        FROM public.cuentas_contables
+        SELECT *
+        FROM public.catalogo_cuentas
         $whereClause
-        ORDER BY id_cuenta ASC
+        ORDER BY codigo ASC
         LIMIT $limit OFFSET $offset
     ";
 

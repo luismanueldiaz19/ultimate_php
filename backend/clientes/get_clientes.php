@@ -18,8 +18,7 @@ if (!empty($filtro)) {
 
 // Consulta principal
 $query = "
-    SELECT id_cliente, nombre, rnc_cedula, tipo_entidad, tipo_identificacion, email, telefono, direccion, creado_en
-    FROM clientes
+    SELECT * FROM clientes
     $where
     ORDER BY creado_en DESC
     LIMIT $limit OFFSET $offset

@@ -6,7 +6,7 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 
 try {
-    $res = pg_query($conn, "SELECT * FROM public.cuentas_contables order by nombre_contable ASC");
+    $res = pg_query($conn, "SELECT * FROM public.catalogo_cuentas order by codigo ASC");
 
     if (!$res) {
         throw new Exception("Error en la consulta: " . pg_last_error($conn));

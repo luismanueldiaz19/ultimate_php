@@ -64,6 +64,10 @@ $sql = "SELECT
     item_pre_orden.tela,
     clientes.nombre as nombre_cliente,
     clientes.telefono,
+    clientes.codigo_cuenta_cxc,
+    clientes.tiene_credito, 
+    clientes.limite_credito,
+    clientes.dias_credito,
     usuarios.nombre as usuario_nombre,
 
     pagos.pago_id,
@@ -124,9 +128,14 @@ try {
             $dataClient = [
                 'id_cliente' => $item['id_cliente'],
                 'nombre' => $item['nombre_cliente'],
-                'telefono' => $item['telefono']
+                'telefono' => $item['telefono'],
+                'codigo_cuenta_cxc' => $item['codigo_cuenta_cxc'],
+                'tiene_credito' => $item['tiene_credito'],
+                'limite_credito' => $item['limite_credito'],
+                'dias_credito' => $item['dias_credito']
             ];
 
+       
             $dataFichas = [
                 'ficha_id' => $item['ficha_id'],
                 'ficha' => $item['ficha'],

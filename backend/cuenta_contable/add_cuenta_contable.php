@@ -25,39 +25,32 @@ try {
             "faltantes" => $missingFields
         ], 400);
     }
-
+   //codigo, nombre, nivel, tipo, padre
     // Valores con trim
     $codigo = trim($data['codigo_contable']);
-    $nombre = trim($data['nombre_contable']);
-    $tipo   = trim($data['tipo_cuenta_contable']);
-    $statu  = isset($data['statu_contable']) ? ($data['statu_contable'] ? 't' : 'f') : 't';
+    $nombre = trim($data['nombre']);
+    $nivel   = trim($data['nivel']);
+    $tipo   = trim($data['tipo']);
+    $padre  = trim($data['padre']);
 
     // Verificar duplicados
-    $checkCodigo = pg_query_params($conn, "SELECT 1 FROM cuentas_contables WHERE codigo_contable = $1 LIMIT 1", [$codigo]);
+    $checkCodigo = pg_query_params($conn, "SELECT 1 FROM catalogo_cuentas WHERE codigo = $1 LIMIT 1", [$codigo]);
     if (pg_num_rows($checkCodigo) > 0) {
         json_response(["success" => false, "message" => "El código contable ya existe"], 409);
     }
 
-    $checkNombre = pg_query_params($conn, "SELECT 1 FROM cuentas_contables WHERE nombre_contable = $1 LIMIT 1", [$nombre]);
+    $checkNombre = pg_query_params($conn, "SELECT 1 FROM catalogo_cuentas WHERE nombre = $1 LIMIT 1", [$nombre]);
     if (pg_num_rows($checkNombre) > 0) {
         json_response(["success" => false, "message" => "El nombre contable ya existe"], 409);
     }
 
     // Insertar en DB
-    $sql = "INSERT INTO public.cuentas_contables (codigo_contable, nombre_contable, tipo_cuenta_contable, statu_contable)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id_cuenta, codigo_contable, nombre_contable, tipo_cuenta_contable, statu_contable, creado_en_contable";
+    $sql = "INSERT INTO public.catalogo_cuentas( codigo, nombre, nivel, tipo, padre)
+            VALUES ($1, $2, $3, $4, $5) RETURNING codigo, nombre, nivel, tipo, padre";
 
-    $params = [$codigo, $nombre, $tipo, $statu];
+    $params = [$codigo, $nombre, $nivel, $tipo, $padre];
+    
     $result = @pg_query_params($conn, $sql, $params);
-
-    if (!$result) {
-        $error = pg_last_error($conn);
-        if (strpos($error, 'cuentas_contables_codigo_contable_key') !== false) {
-            json_response(["success" => false, "message" => "El código contable ya existe"], 409);
-        }
-        json_response(["success" => false, "message" => "Error al crear cuenta contable: " . $error], 500);
-    }
 
     $newCuenta = pg_fetch_assoc($result);
     json_response([
