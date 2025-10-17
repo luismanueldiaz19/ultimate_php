@@ -1,45 +1,17 @@
 <?php
 include '../conexion.php';
 include '../utils.php';
+header("Content-Type: application/json");
 
-
-$data = json_decode(file_get_contents("php://input"), true) ?? [];
-
-// Parámetros de paginación
-$limit  = isset($data['limit'])  ? intval($data['limit'])  : 10;
-$offset = isset($data['offset']) ? intval($data['offset']) : 0;
-
-// Parámetros de filtro
-$filtro      = isset($data['filtro'])       ? trim($data['filtro'])       : '';
-$fechaInicio = isset($data['fecha_inicio']) ? $data['fecha_inicio'] : null;
-$fechaFin    = isset($data['fecha_fin'])    ? $data['fecha_fin']    : null;
-
-// Construcción dinámica de condiciones
-$condiciones = ["p.estado_general = 'ENTREGADO'"];
-
-if ($filtro !== '') {
-    $filtro = pg_escape_string($filtro);
-    $condiciones[] = "p.num_orden ILIKE '%$filtro%'";
-}
-
-if ($fechaInicio && $fechaFin) {
-    $fechaInicio = pg_escape_string($fechaInicio . ' 00:00:00');
-    $fechaFin    = pg_escape_string($fechaFin . ' 23:59:59');
-    $condiciones[] = "p.fecha_entrega BETWEEN '$fechaInicio' AND '$fechaFin'";
-}
-
-
-
-$whereSQL = implode(" AND ", $condiciones);
-
+// Consulta base
 $sql = "SELECT 
     p.pre_orden_id,
     p.ficha_id,
     list_ficha_available.ficha, 
     list_ficha_available.color_ficha,
-    p.num_orden,
     p.num_comprobante,
     p.fecha_emision,
+    p.num_orden,
     p.name_logo,
     p.id_usuario,
     p.id_cliente,
@@ -56,6 +28,9 @@ $sql = "SELECT
     item_pre_orden.id_producto,
     productos.nombre_producto,
     productos.codigo_producto,
+    productos.department,
+	productos.tela,
+    productos.cuenta_contable_id,
     item_pre_orden.is_produccion,
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
@@ -80,9 +55,8 @@ INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_product
 INNER JOIN public.list_ficha_available  ON list_ficha_available.ficha_id = p.ficha_id
 INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
 INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
-WHERE $whereSQL
-ORDER BY p.num_orden ASC
-LIMIT $limit OFFSET $offset";
+WHERE p.estado_general = 'POR ENTREGAR' 
+ORDER BY p.num_orden ASC";
 
 try {
     $res = pg_query($conn, $sql);
@@ -96,6 +70,8 @@ try {
 
         // Si la orden no está registrada aún, la inicializamos
         if (!isset($agrupadoPorOrden[$numOrden])) {
+            //   p.num_comprobante,
+    // p.fecha_emision,
             $agrupadoPorOrden[$numOrden] = [
                 'num_orden' => $numOrden,
                 'num_comprobante' =>  $item['num_comprobante'],
@@ -140,6 +116,8 @@ try {
                 'nombre_producto' => $item['nombre_producto'],
                 'codigo_producto' => $item['codigo_producto'],
                 'nota_producto' => $item['nota_producto'],
+                'department' => $item['department'],
+                'tela' => $item['tela'],
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
                 'cant' => $item['cant'],
@@ -174,9 +152,7 @@ try {
 
     echo json_encode([
         "success" => true,
-        "data" => array_values($agrupadoPorOrden),
-        "limit" => $limit,
-        "offset" => $offset
+        "data" => array_values($agrupadoPorOrden)
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
