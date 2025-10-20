@@ -2,11 +2,13 @@
 include '../conexion.php';
 include '../utils.php';
 
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
 
 try {
-    $res = pg_query($conn, "SELECT * FROM public.catalogo_cuentas order by codigo ASC");
+    $res = pg_query($conn, "SELECT m.codigo, m.nombre, m.nivel,tipo_cuenta.descricion as tipo,
+tipo_cuenta.status_tipo,m.padre, m.tipo_cuenta_id
+FROM public.catalogo_cuentas as m
+inner join public.tipo_cuenta  on tipo_cuenta.tipo_cuenta_id = m.tipo_cuenta_id
+order by m.codigo ASC");
 
     if (!$res) {
         throw new Exception("Error en la consulta: " . pg_last_error($conn));
