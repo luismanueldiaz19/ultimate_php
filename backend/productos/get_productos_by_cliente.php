@@ -18,39 +18,35 @@ try {
     }
     $sql = "
         SELECT 
-            p.id_producto,
-            p.tela,
-            p.nombre_producto,
-            p.codigo_producto,
-            c.nombre_categoria AS categoria,
-            pr.nombre_proveedor AS proveedor,
-            u.nombre_medida AS unidad_medida,
-            i.nombre_impuesto AS impuesto,
-            i.porcentaje_impuesto AS porcentaje_impuesto,
-            a.nombre_almacen AS almacen,
-            cc.nombre_contable AS cuenta_inventario,
-            p.costo,
-            p.precio_one,
-            p.precio_two,
-            p.precio_three,
-            CASE cl.tipo_precio
-                WHEN 'precio_one' THEN p.precio_one
-                WHEN 'precio_two' THEN p.precio_two
-                WHEN 'precio_three' THEN p.precio_three
-                ELSE p.precio_one
-            END AS precio_asignado,
-            p.department,
-            p.creado_en,
-            p.productos_catalogos_id
-        FROM productos p
-        LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
-        LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
-        LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
-        LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
-        LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
-        LEFT JOIN cuentas_contables cc ON p.cuenta_contable_id = cc.id_cuenta
-        JOIN clientes cl ON cl.id_cliente = $1
-    ";
+    p.id_producto,
+    p.tela,
+    p.nombre_producto,
+    p.codigo_producto,
+    c.nombre_categoria AS categoria,
+    pr.nombre_proveedor AS proveedor,
+    u.nombre_medida AS unidad_medida,
+    i.nombre_impuesto AS impuesto,
+    i.porcentaje_impuesto AS porcentaje_impuesto,
+    a.nombre_almacen AS almacen,
+    p.costo,
+    p.precio_one,
+    p.precio_two,
+    p.precio_three,
+    CASE cl.tipo_precio
+        WHEN 'two' THEN p.precio_two
+        WHEN 'three' THEN p.precio_three
+        ELSE p.precio_one
+    END AS precio_asignado,
+    p.department,
+    p.creado_en,
+    p.productos_catalogos_id
+FROM productos p
+LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
+LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
+LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
+LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
+LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
+JOIN clientes cl ON cl.id_cliente = $1";
 
     $result = pg_query_params($conn, $sql, [$idCliente]);
     if (!$result) {

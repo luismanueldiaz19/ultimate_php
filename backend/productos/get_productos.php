@@ -53,7 +53,6 @@ try {
             i.nombre_impuesto AS impuesto,
             i.porcentaje_impuesto  AS porcentaje_impuesto,
             a.nombre_almacen AS almacen,
-            cc.nombre_contable AS cuenta_inventario,
             p.tela,costo, p.precio_one, p.precio_two,
 			p.precio_three, p.department,
             p.creado_en,
@@ -64,7 +63,6 @@ try {
         LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
         LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
         LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
-        LEFT JOIN cuentas_contables cc ON p.cuenta_contable_id = cc.id_cuenta
         $whereClause
         ORDER BY p.id_producto
         LIMIT $limit OFFSET $offset
