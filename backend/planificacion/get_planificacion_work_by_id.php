@@ -30,6 +30,7 @@ if (empty($department_id) || empty($planificacion_work_id)) {
             productos.codigo_producto,
             productos.nombre_producto,
             m.id_producto,
+            m.is_planned,
             m.item_pre_orden_id,
             m.department_id,
             m.estado_planificacion_work,
@@ -104,6 +105,7 @@ foreach ($planificaciones as $row) {
         $agrupado[$workId] = [
     "planificacion_work_id" => $workId,
     "name_department" => $row['name_department'],
+     "is_planned" => $row['is_planned'],
     "path_image" => $row['path_image'],
     "type" => $row['type'],
     "codigo_producto" => $row['codigo_producto'],
