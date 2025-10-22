@@ -16,10 +16,10 @@ try {
 
     foreach ($productos as $p) {
         $usuarioId = $p['id_usuario'] ?? null;
-        $nombre = trim($p['nombre_producto'] ?? '');
+        // $nombre = trim($p['nombre_producto'] ?? '');
         $categoria_id = $p['categoria_id'] ?? null;
 
-        if (!$usuarioId || !$nombre || !$categoria_id) {
+        if (!$usuarioId || !$categoria_id) {
             continue; // Saltar si faltan campos obligatorios
         }
 
@@ -34,7 +34,6 @@ try {
 
         // Preparar campos
         $map = [
-            'nombre_producto' => $nombre,
             'codigo_producto' => $codigo_producto,
             'categoria_id' => $categoria_id,
             'proveedor_id' => $p['proveedor_id'] ?? null,
@@ -42,14 +41,21 @@ try {
             'impuesto_id' => $p['impuesto_id'] ?? null,
             'almacen_id' => $p['almacen_id'] ?? null,
             'cuenta_contable_id' => $p['cuenta_contable_id'] ?? null,
+            'productos_catalogos_id' => $p['productos_catalogos_id'] ?? null,
             'costo' => $p['costo'] ?? null,
             'precio_one' => $p['precio_one'] ?? null,
             'precio_two' => $p['precio_two'] ?? null,
             'precio_three' => $p['precio_three'] ?? null,
             'tela' => $p['tela'] ?? null,
-            'department' => $p['department'] ?? null
+            'linea' => $p['linea'] ?? null,
+            'material' => $p['material'] ?? null,
+            'estilo' => $p['estilo'] ?? null,
+            'marca' => $p['marca'] ?? null,
+            'genero' => $p['genero'] ?? null,
+            'color' => $p['color'] ?? null,
+            'size' => $p['size'] ?? null
         ];
-
+   // linea, material, estilo, marca, genero, color, size
         $fields = [];
         $placeholders = [];
         $params = [];
