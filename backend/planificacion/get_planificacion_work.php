@@ -46,7 +46,16 @@ $placeholdersStr = implode(",", $placeholders);
             departments.path_image,
             departments.type,
             productos.codigo_producto,
-            productos.nombre_producto,
+            
+            productos.linea,
+            productos.material,
+            productos.estilo,
+            productos.marca,
+            productos.genero,
+            productos.color,
+            productos.size,
+
+
             m.id_producto,
             m.item_pre_orden_id,
             m.department_id,
@@ -130,7 +139,15 @@ foreach ($planificaciones as $row) {
     "type" => $row['type'],
     'is_planned' => $row['is_planned'],
     "codigo_producto" => $row['codigo_producto'],
-    "nombre_producto" => $row['nombre_producto'],
+    "linea" => $row['linea'],
+    "material" => $row['material'],
+    "estilo" => $row['estilo'],
+    "marca" => $row['marca'],
+    "genero" => $row['genero'],
+    "color" => $row['color'],
+    "size" => $row['size'],
+
+    //linea, material, estilo,marca, genero, color, size
     "id_producto" => $row['id_producto'],
     "item_pre_orden_id" => $row['item_pre_orden_id'],
     "department_id" => $row['department_id'],

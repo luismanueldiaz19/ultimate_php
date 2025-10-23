@@ -51,9 +51,23 @@ $sql = "SELECT
     p.nota_orden,
     item_pre_orden.item_pre_orden_id,
     item_pre_orden.id_producto,
-    productos.nombre_producto,
+
+
+
     productos.codigo_producto,
     productos.department,
+    productos.cuenta_contable_id,
+    productos.linea,
+    productos.material,
+    productos.estilo,
+    productos.marca,
+    productos.genero,
+    productos.color,
+    productos.size,
+
+
+
+
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
     item_pre_orden.itbs,
@@ -61,7 +75,6 @@ $sql = "SELECT
     item_pre_orden.estado_item,
     item_pre_orden.creado_en AS creado_item,
     item_pre_orden.is_produccion,
-    item_pre_orden.tela,
     clientes.nombre as nombre_cliente,
     clientes.telefono,
     clientes.codigo_cuenta_cxc,
@@ -191,13 +204,22 @@ try {
                 // 'tamano' => $item['tamano']
             ];
 
+            $dataProducto = [
+                'codigo_producto' => $item['codigo_producto'],
+                'id_producto' => $item['id_producto'],
+                "linea" => $item['linea'],
+                "material" => $item['material'],
+                "estilo" => $item['estilo'],
+                "marca" => $item['marca'],
+                "genero" => $item['genero'],
+                "color" => $item['color'],
+                "size" => $item['size'],
+                'nota_producto' => $item['nota_producto'],
+            ];
+
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $idItem,
-                'id_producto' => $item['id_producto'],
-                'tela' => $item['tela'],
-                'nombre_producto' => $item['nombre_producto'],
-                'codigo_producto' => $item['codigo_producto'],
-                'nota_producto' => $item['nota_producto'],
+                'producto' =>  $dataProducto,
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
                 'cant' => $item['cant'],

@@ -98,8 +98,8 @@ try {
     foreach ($data['item_orden'] as $item) {
         $resDetalle = pg_query_params($conn,
             "INSERT INTO item_pre_orden 
-            (pre_orden_id, id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en,tela,design_tipo_id)
-            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW(), $7,$8)",
+            (pre_orden_id, id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en,design_tipo_id)
+            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW(), $7)",
             [
                 $preOrdenId,
                 $item['id_producto'],
@@ -107,7 +107,6 @@ try {
                 $item['precio'],
                 $item['itbs'],
                 $item['cant'],
-                $item['tela'],
                 $item['design_tipo_id'],
             ]
         );

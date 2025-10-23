@@ -19,8 +19,14 @@ try {
     $sql = "
         SELECT 
     p.id_producto,
-    p.tela,
-    p.nombre_producto,
+    p.codigo_producto,
+            p.linea,
+            p.material,
+            p.estilo,
+            p.marca,
+            p.genero,
+            p.color,
+            p.size,
     p.codigo_producto,
     c.nombre_categoria AS categoria,
     pr.nombre_proveedor AS proveedor,

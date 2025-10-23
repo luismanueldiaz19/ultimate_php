@@ -34,8 +34,8 @@ try {
 
         $resInsert = pg_query_params($conn,
             "INSERT INTO item_pre_orden 
-            (pre_orden_id,id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en, tela)
-            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW(), $7)",
+            (pre_orden_id,id_producto, nota_producto, precio, itbs, cant, estado_item, creado_en)
+            VALUES ($1, $2, $3, $4, $5, $6, 'PENDIENTE', NOW())",
             [
                 $preOrdenId,
                 $item['id_producto'],
@@ -43,7 +43,7 @@ try {
                 $item['precio'],
                 $item['itbs'],
                 $item['cant'],
-                $item['tela'] ?? null
+   
             ]
         );
 

@@ -54,8 +54,19 @@ $sql = "SELECT
     p.nota_orden,
     item_pre_orden.item_pre_orden_id,
     item_pre_orden.id_producto,
-    productos.nombre_producto,
+
+
     productos.codigo_producto,
+    productos.department,
+    productos.cuenta_contable_id,
+    productos.linea,
+    productos.material,
+    productos.estilo,
+    productos.marca,
+    productos.genero,
+    productos.color,
+    productos.size,
+
     item_pre_orden.is_produccion,
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
@@ -137,8 +148,16 @@ try {
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
                 'id_producto' => $item['id_producto'],
-                'nombre_producto' => $item['nombre_producto'],
+                
                 'codigo_producto' => $item['codigo_producto'],
+                "linea" => $row['linea'],
+                "material" => $row['material'],
+                "estilo" => $row['estilo'],
+                "marca" => $row['marca'],
+                "genero" => $row['genero'],
+                "color" => $row['color'],
+                "size" => $row['size'], 
+
                 'nota_producto' => $item['nota_producto'],
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
