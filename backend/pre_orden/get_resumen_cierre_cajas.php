@@ -59,7 +59,7 @@ $sql = "SELECT
     MAX(o.num_orden) AS secuencia_final
 FROM pagos_pre_orden p
 JOIN pre_orden o ON o.pre_orden_id = p.pre_orden_id
-WHERE p.id_usuario = $1 AND DATE(p.fecha_pago) BETWEEN $2 AND $3
+WHERE p.id_usuario = $1 AND DATE(p.fecha_pago) BETWEEN $2 AND $3 
 GROUP BY p.id_usuario;";
 
 $params = [$fields['id_usuario'], $fields['date1'], $fields['date2']];

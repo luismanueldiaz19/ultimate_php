@@ -1,45 +1,24 @@
 <?php
 include '../conexion.php';
 include '../utils.php';
-
+header("Content-Type: application/json");
 
 $data = json_decode(file_get_contents("php://input"), true) ?? [];
 
 // Parámetros de paginación
 $limit  = isset($data['limit'])  ? intval($data['limit'])  : 10;
 $offset = isset($data['offset']) ? intval($data['offset']) : 0;
+$filtro = isset($data['filtro']) ? trim($data['filtro']) : '';
 
-// Parámetros de filtro
-$filtro      = isset($data['filtro'])       ? trim($data['filtro'])       : '';
-$fechaInicio = isset($data['fecha_inicio']) ? $data['fecha_inicio'] : null;
-$fechaFin    = isset($data['fecha_fin'])    ? $data['fecha_fin']    : null;
-
-// Construcción dinámica de condiciones
-$condiciones = ["p.estado_general = 'ENTREGADO'"];
-
-if ($filtro !== '') {
-    $filtro = pg_escape_string($filtro);
-    $condiciones[] = "p.num_orden ILIKE '%$filtro%'";
-}
-
-if ($fechaInicio && $fechaFin) {
-    $fechaInicio = pg_escape_string($fechaInicio . ' 00:00:00');
-    $fechaFin    = pg_escape_string($fechaFin . ' 23:59:59');
-    $condiciones[] = "p.fecha_entrega BETWEEN '$fechaInicio' AND '$fechaFin'";
-}
-
-
-
-$whereSQL = implode(" AND ", $condiciones);
-
+// Consulta base
 $sql = "SELECT 
     p.pre_orden_id,
     p.ficha_id,
     list_ficha_available.ficha, 
     list_ficha_available.color_ficha,
-    p.num_orden,
     p.num_comprobante,
     p.fecha_emision,
+    p.num_orden,
     p.name_logo,
     p.id_usuario,
     p.id_cliente,
@@ -55,7 +34,6 @@ $sql = "SELECT
     item_pre_orden.item_pre_orden_id,
     item_pre_orden.id_producto,
 
-
     productos.codigo_producto,
     productos.department,
     productos.cuenta_contable_id,
@@ -66,6 +44,7 @@ $sql = "SELECT
     productos.genero,
     productos.color,
     productos.size,
+
 
     item_pre_orden.is_produccion,
     item_pre_orden.nota_producto,
@@ -83,7 +62,6 @@ $sql = "SELECT
     design_images_items.comment_imagen, 
     design_images_items.body_ubicacion,
     design_images_items.ruta
-    
 FROM public.pre_orden p 
 INNER JOIN public.item_pre_orden ON item_pre_orden.pre_orden_id = p.pre_orden_id
 INNER JOIN public.clientes ON clientes.id_cliente = p.id_cliente
@@ -92,9 +70,8 @@ INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_product
 INNER JOIN public.list_ficha_available  ON list_ficha_available.ficha_id = p.ficha_id
 INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
 INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
-WHERE $whereSQL
-ORDER BY p.num_orden ASC
-LIMIT $limit OFFSET $offset";
+WHERE p.estado_general NOT IN ('ENTREGADO', 'POR ENTREGAR') AND p.num_orden ~ '^INT-[0-9]+$'
+ORDER BY p.num_orden ASC";
 
 try {
     $res = pg_query($conn, $sql);
@@ -108,6 +85,8 @@ try {
 
         // Si la orden no está registrada aún, la inicializamos
         if (!isset($agrupadoPorOrden[$numOrden])) {
+            //   p.num_comprobante,
+    // p.fecha_emision,
             $agrupadoPorOrden[$numOrden] = [
                 'num_orden' => $numOrden,
                 'num_comprobante' =>  $item['num_comprobante'],
@@ -145,10 +124,14 @@ try {
         $itemIndex = array_search($item['item_pre_orden_id'], array_column($agrupadoPorOrden[$numOrden]['items_pre_orden'], 'item_pre_orden_id'));
 
         if ($itemIndex === false) {
+
+
+           
+
+
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
-                
 
 
                 'producto' => [
@@ -161,13 +144,9 @@ try {
                 "genero" => $item['genero'],
                 "color" => $item['color'],
                 "size" => $item['size'], 
-                'nota_producto' => $item['nota_producto'],
                 ],
                 'nota_producto' => $item['nota_producto'],
-                
-              
-
-                
+                'department' => $item['department'],
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
                 'cant' => $item['cant'],

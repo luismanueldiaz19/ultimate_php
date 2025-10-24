@@ -70,7 +70,7 @@ INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_product
 INNER JOIN public.list_ficha_available  ON list_ficha_available.ficha_id = p.ficha_id
 INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
 INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
-WHERE p.estado_general IN ('POR ENTREGAR')
+WHERE p.estado_general IN ('POR ENTREGAR') AND p.num_orden ~ '^ORD-[0-9]+$'
 ORDER BY p.num_orden ASC";
 
 try {
