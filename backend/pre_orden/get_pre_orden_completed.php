@@ -147,18 +147,26 @@ try {
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
-                'id_producto' => $item['id_producto'],
                 
-                'codigo_producto' => $item['codigo_producto'],
-                "linea" => $row['linea'],
-                "material" => $row['material'],
-                "estilo" => $row['estilo'],
-                "marca" => $row['marca'],
-                "genero" => $row['genero'],
-                "color" => $row['color'],
-                "size" => $row['size'], 
 
+
+                'producto' => [
+                'id_producto' => $item['id_producto'],
+                'codigo_producto' => $item['codigo_producto'],
+                "linea" => $item['linea'],
+                "material" => $item['material'],
+                "estilo" => $item['estilo'],
+                "marca" => $item['marca'],
+                "genero" => $item['genero'],
+                "color" => $item['color'],
+                "size" => $item['size'], 
                 'nota_producto' => $item['nota_producto'],
+                ],
+                'nota_producto' => $item['nota_producto'],
+                
+              
+
+                
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
                 'cant' => $item['cant'],

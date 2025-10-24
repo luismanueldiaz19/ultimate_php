@@ -72,7 +72,13 @@ try {
 
     $resumen = pg_fetch_assoc($res) ?: [];
 
-
+    if (!$resumen) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'No se encontraron resultados en el rango de fechas especificado.'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
     echo json_encode([
         'success' => true,
         'data' => $resumen

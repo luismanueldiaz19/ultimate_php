@@ -53,7 +53,8 @@ try {
             'marca' => $p['marca'] ?? null,
             'genero' => $p['genero'] ?? null,
             'color' => $p['color'] ?? null,
-            'size' => $p['size'] ?? null
+            'size' => $p['size'] ?? null,
+            'department' => $p['department'] ?? null,
         ];
    // linea, material, estilo, marca, genero, color, size
         $fields = [];
@@ -87,10 +88,6 @@ if ($result === false) {
         throw new Exception($error);
     }
 }
-
-
-
-
 
     }
 

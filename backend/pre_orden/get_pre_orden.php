@@ -70,7 +70,7 @@ INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_product
 INNER JOIN public.list_ficha_available  ON list_ficha_available.ficha_id = p.ficha_id
 INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
 INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
-WHERE p.estado_general != 'ENTREGADO' 
+WHERE p.estado_general NOT IN ('ENTREGADO', 'POR ENTREGAR')
 ORDER BY p.num_orden ASC";
 
 try {
@@ -124,12 +124,19 @@ try {
         $itemIndex = array_search($item['item_pre_orden_id'], array_column($agrupadoPorOrden[$numOrden]['items_pre_orden'], 'item_pre_orden_id'));
 
         if ($itemIndex === false) {
+
+
+           
+
+
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
+
+
+                'producto' => [
                 'id_producto' => $item['id_producto'],
                 'codigo_producto' => $item['codigo_producto'],
-
                 "linea" => $item['linea'],
                 "material" => $item['material'],
                 "estilo" => $item['estilo'],
@@ -137,8 +144,7 @@ try {
                 "genero" => $item['genero'],
                 "color" => $item['color'],
                 "size" => $item['size'], 
-                                   
-                
+                ],
                 'nota_producto' => $item['nota_producto'],
                 'department' => $item['department'],
                 'precio' => $item['precio'],

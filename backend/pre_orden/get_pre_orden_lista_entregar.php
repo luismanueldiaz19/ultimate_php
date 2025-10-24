@@ -3,6 +3,13 @@ include '../conexion.php';
 include '../utils.php';
 header("Content-Type: application/json");
 
+$data = json_decode(file_get_contents("php://input"), true) ?? [];
+
+// Parámetros de paginación
+$limit  = isset($data['limit'])  ? intval($data['limit'])  : 10;
+$offset = isset($data['offset']) ? intval($data['offset']) : 0;
+$filtro = isset($data['filtro']) ? trim($data['filtro']) : '';
+
 // Consulta base
 $sql = "SELECT 
     p.pre_orden_id,
@@ -39,7 +46,6 @@ $sql = "SELECT
     productos.size,
 
 
-
     item_pre_orden.is_produccion,
     item_pre_orden.nota_producto,
     item_pre_orden.precio,
@@ -64,7 +70,7 @@ INNER JOIN public.productos ON productos.id_producto = item_pre_orden.id_product
 INNER JOIN public.list_ficha_available  ON list_ficha_available.ficha_id = p.ficha_id
 INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
 INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
-WHERE p.estado_general = 'POR ENTREGAR' 
+WHERE p.estado_general IN ('POR ENTREGAR')
 ORDER BY p.num_orden ASC";
 
 try {
@@ -118,24 +124,30 @@ try {
         $itemIndex = array_search($item['item_pre_orden_id'], array_column($agrupadoPorOrden[$numOrden]['items_pre_orden'], 'item_pre_orden_id'));
 
         if ($itemIndex === false) {
+
+
+           
+
+
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
+
+
+                'producto' => [
                 'id_producto' => $item['id_producto'],
-                
                 'codigo_producto' => $item['codigo_producto'],
-                "linea" => $row['linea'],
-                "material" => $row['material'],
-                "estilo" => $row['estilo'],
-                "marca" => $row['marca'],
-                "genero" => $row['genero'],
-                "color" => $row['color'],
-                "size" => $row['size'], 
-
-
+                "linea" => $item['linea'],
+                "material" => $item['material'],
+                "estilo" => $item['estilo'],
+                "marca" => $item['marca'],
+                "genero" => $item['genero'],
+                "color" => $item['color'],
+                "size" => $item['size'],
+                'nota_producto' => $item['nota_producto'],
+                ],
                 'nota_producto' => $item['nota_producto'],
                 'department' => $item['department'],
-                'tela' => $item['tela'],
                 'precio' => $item['precio'],
                 'itbs' => $item['itbs'],
                 'cant' => $item['cant'],
@@ -170,7 +182,9 @@ try {
 
     echo json_encode([
         "success" => true,
-        "data" => array_values($agrupadoPorOrden)
+        "data" => array_values($agrupadoPorOrden),
+        "limit" => $limit,
+        "offset" => $offset
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
