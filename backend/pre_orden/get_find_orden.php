@@ -55,12 +55,12 @@ try {
             productos.department,
             productos.cuenta_contable_id,
             productos.linea,
-    productos.material,
-    productos.estilo,
-    productos.marca,
-    productos.genero,
-    productos.color,
-    productos.size,
+            productos.material,
+            productos.estilo,
+            productos.marca,
+            productos.genero,
+            productos.color,
+            productos.size,
             
 
             item_pre_orden.is_produccion,
@@ -148,20 +148,25 @@ try {
         );
 
         if ($itemIndex === false) {
+
+
+
+
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
+               'producto' => [
                 'id_producto' => $item['id_producto'],
-                
                 'codigo_producto' => $item['codigo_producto'],
-                "linea" => $row['linea'],
-                "material" => $row['material'],
-                "estilo" => $row['estilo'],
-                "marca" => $row['marca'],
-                "genero" => $row['genero'],
-                "color" => $row['color'],
-                "size" => $row['size'], 
-
+                 'nota_producto' => $item['nota_producto'],
+                "linea" => $item['linea'],
+                "material" => $item['material'],
+                "estilo" => $item['estilo'],
+                "marca" => $item['marca'],
+                "genero" => $item['genero'],
+                "color" => $item['color'],
+                "size" => $item['size'], 
+                ],
                 'nota_producto' => $item['nota_producto'],
                 'department' => $item['department'],
 

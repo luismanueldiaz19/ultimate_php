@@ -8,7 +8,6 @@ header("Access-Control-Allow-Origin: *");
 try {
     $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
 
-    $departamento = isset($data['name_department']) ? trim($data['name_department']) : '';
     $date1 = isset($data['date1']) ? trim($data['date1']) : '';
     $date2 = isset($data['date2']) ? trim($data['date2']) : '';
 
@@ -19,13 +18,7 @@ try {
         ], 400);
     }
 
-    if (empty($departamento)) {
-        json_response([
-            "success" => false,
-            "message" => "El nombre del departamento está vacío."
-        ], 400);
-    }
-
+ 
     $sql = "
         SELECT 
             planificador.planificador_id,
@@ -58,16 +51,11 @@ try {
         INNER JOIN public.pre_orden ON pre_orden.pre_orden_id = item_pre_orden.pre_orden_id
         INNER JOIN public.productos ON productos.id_producto = m.id_producto
         INNER JOIN public.design_tipo ON design_tipo.design_tipo_id = item_pre_orden.design_tipo_id
-        WHERE departments.name_department = $1
-          AND planificador.estado_planificador <> 'TERMINADO'
-          AND (
-              planificador.fecha_planificacion BETWEEN $2 AND $3
-              OR planificador.fecha_planificacion < $2
-          )
-        ORDER BY planificador.index_panificacion :: integer, departments.name_department ASC;
+        WHERE planificador.fecha_planificacion BETWEEN $1 AND $2
+        ORDER BY planificador.index_panificacion :: integer, departments.name_department ASC Limit 500;
     ";
 
-    $params = [$departamento, $date1, $date2];
+    $params = [$date1, $date2];
     $result = pg_query_params($conn, $sql, $params);
 
     if (!$result) {
