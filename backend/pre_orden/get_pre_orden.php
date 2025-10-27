@@ -144,6 +144,7 @@ try {
                 "genero" => $item['genero'],
                 "color" => $item['color'],
                 "size" => $item['size'], 
+                'department' => $item['department'],
                 ],
                 'nota_producto' => $item['nota_producto'],
                 'department' => $item['department'],

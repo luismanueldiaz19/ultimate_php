@@ -150,7 +150,6 @@ try {
                 'is_produccion' => $item['is_produccion'],
                 
 
-
                 'producto' => [
                 'id_producto' => $item['id_producto'],
                 'codigo_producto' => $item['codigo_producto'],
@@ -162,9 +161,10 @@ try {
                 "color" => $item['color'],
                 "size" => $item['size'], 
                 'nota_producto' => $item['nota_producto'],
+                'department' => $item['department'],
                 ],
                 'nota_producto' => $item['nota_producto'],
-                
+                'department' => $item['department'],
               
 
                 
