@@ -16,38 +16,35 @@ if (!empty($filtro)) {
 }
 
 // Consulta con JOIN
-$query = "
-    SELECT 
-        dc.design_company_id,
-        dc.institution_name,
-        dc.created_at AS company_created_at,
-        dc.is_active,
-		
-        ea.nombre_estado AS estado_aprobacion,
-		ea.descripcion  AS estado_descripcion,
-        dt.design_tipo_id,
-        dt.tipo_trabajo,
-        dt.created_at AS tipo_created_at,
-        dt.facturado_por,
-        dt.costo_logo,
-        dt.fecha_facturado,
-        dt.has_cost, 
-        dt.estado_aprobacion_id,
+$query = "SELECT 
+    dc.design_company_id,
+    dc.institution_name,
+    dc.created_at AS company_created_at,
+    dc.is_active,
 
-        di.design_images_items_id,
-        di.comment_imagen,
-        di.body_ubicacion,
-        di.created_at_design_images,
-        di.ruta
+    ea.nombre_estado AS estado_aprobacion,
+    ea.descripcion AS estado_descripcion,
 
-    FROM public.design_company dc
-    LEFT JOIN public.design_tipo dt ON dt.design_company_id = dc.design_company_id
-    LEFT JOIN public.design_images_items di ON di.design_tipo_id = dt.design_tipo_id
-    LEFT JOIN estado_aprobacion ea ON dt.estado_aprobacion_id = ea.id
-    $where
-    ORDER BY dt.design_tipo_id DESC
-    LIMIT $limit OFFSET $offset
-";
+    dt.design_tipo_id,
+    dt.tipo_trabajo,
+    dt.created_at AS tipo_created_at,
+    dt.facturado_por,
+    dt.costo_logo,
+    dt.fecha_facturado,
+    dt.has_cost,
+    dt.estado_aprobacion_id,
+
+    di.design_images_items_id,
+    di.comment_imagen,
+    di.body_ubicacion,
+    di.created_at_design_images,
+    di.ruta
+
+FROM public.design_company dc
+LEFT JOIN public.design_tipo dt ON dt.design_company_id = dc.design_company_id
+LEFT JOIN public.design_images_items di ON di.design_tipo_id = dt.design_tipo_id
+LEFT JOIN estado_aprobacion ea ON dt.estado_aprobacion_id = ea.id
+WHERE dt.estado_aprobacion_id IN (1, 2) ORDER BY dt.created_at DESC ;";
 
 // Conteo total
 $countQuery = "SELECT COUNT(*) AS total FROM design_company dc $where";

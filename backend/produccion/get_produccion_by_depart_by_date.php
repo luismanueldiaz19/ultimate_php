@@ -86,7 +86,7 @@ try {
     INNER JOIN public.pre_orden ON pre_orden.pre_orden_id = item_pre_orden.pre_orden_id
     WHERE planificacion_work.department_id = $1 
       AND m.start_date BETWEEN $2 AND $3
-    ORDER BY m.hoja_produccion_id ASC
+    ORDER BY m.start_date DESC
     ";
 //   AND m.estado_hoja_producion <> 'COMPLETADO' 
     $res = pg_query_params($conn, $sql, [$department_id, $start_date_from, $start_date_to]);

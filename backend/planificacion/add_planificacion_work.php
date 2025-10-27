@@ -31,6 +31,7 @@ try {
 
         // Buscar department_id por nombre
         $sqlDept = "SELECT department_id FROM public.departments WHERE LOWER(name_department) = $1 LIMIT 1";
+
         $resDept = pg_query_params($conn, $sqlDept, [$nombreDepartamento]);
 
         if (pg_num_rows($resDept) === 0) {
@@ -40,13 +41,18 @@ try {
                 "department" => $nombreDepartamento,
                 "nota_producto" => $notaProducto
             ];
+            $sqlUpdate = "UPDATE public.item_pre_orden  SET estado_item = 'COMPLETADO', is_produccion = true  WHERE item_pre_orden_id = $1";
+            pg_query_params($conn, $sqlUpdate, [$itemId]);
             continue;
         }
+
+        // UPDATE public.item_pre_orden SET estado_item = 'COMPLETADO' WHERE item_pre_orden_id = ?
 
         $departmentId = pg_fetch_result($resDept, 0, 'department_id');
 
         // Verificar si ya existe planificación
         $sqlCheck = "SELECT 1 FROM public.planificacion_work WHERE item_pre_orden_id = $1 AND department_id = $2 LIMIT 1";
+
         $resCheck = pg_query_params($conn, $sqlCheck, [$itemId, $departmentId]);
 
         if (pg_num_rows($resCheck) > 0) {

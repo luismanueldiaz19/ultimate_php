@@ -99,7 +99,7 @@ $placeholdersStr = implode(",", $placeholders);
 		INNER JOIN public.design_images_items ON design_images_items.design_tipo_id = item_pre_orden.design_tipo_id
         WHERE pre_orden.fecha_entrega <= $1  AND departments.type IN ($placeholdersStr)
         AND m.estado_planificacion_work <> 'COMPLETADO'
-        ORDER BY departments.name_department ASC";
+        ORDER BY  departments.name_department DESC";
 
     // Ejecutar consulta segura
     // $params = [$fechaInicio];
@@ -138,17 +138,17 @@ foreach ($planificaciones as $row) {
     "path_image" => $row['path_image'],
     "type" => $row['type'],
     'is_planned' => $row['is_planned'],
-    "codigo_producto" => $row['codigo_producto'],
-    "linea" => $row['linea'],
-    "material" => $row['material'],
-    "estilo" => $row['estilo'],
-    "marca" => $row['marca'],
-    "genero" => $row['genero'],
-    "color" => $row['color'],
-    "size" => $row['size'],
-
-    //linea, material, estilo,marca, genero, color, size
-    "id_producto" => $row['id_producto'],
+    "producto" => [
+        "codigo_producto" => $row['codigo_producto'],
+        "id_producto" => $row['id_producto'],
+        "linea" => $row['linea'],
+        "material" => $row['material'],
+        "estilo" => $row['estilo'],
+        "marca" => $row['marca'],
+        "genero" => $row['genero'],
+        "color" => $row['color'],
+        "size" => $row['size']
+    ],
     "item_pre_orden_id" => $row['item_pre_orden_id'],
     "department_id" => $row['department_id'],
     "estado_planificacion_work" => $row['estado_planificacion_work'],
