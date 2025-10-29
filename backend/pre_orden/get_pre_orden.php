@@ -124,16 +124,9 @@ try {
         $itemIndex = array_search($item['item_pre_orden_id'], array_column($agrupadoPorOrden[$numOrden]['items_pre_orden'], 'item_pre_orden_id'));
 
         if ($itemIndex === false) {
-
-
-           
-
-
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $item['item_pre_orden_id'],
                 'is_produccion' => $item['is_produccion'],
-
-
                 'producto' => [
                 'id_producto' => $item['id_producto'],
                 'codigo_producto' => $item['codigo_producto'],

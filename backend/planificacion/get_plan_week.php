@@ -68,6 +68,7 @@ try {
     ";
 
     $params = [$departamento, $date1, $date2];
+
     $result = pg_query_params($conn, $sql, $params);
 
     if (!$result) {
@@ -75,6 +76,7 @@ try {
     }
 
     $rows = pg_fetch_all($result) ?? [];
+    
     $planificaciones = [];
 
     foreach ($rows as $row) {
