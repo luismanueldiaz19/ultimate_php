@@ -24,7 +24,7 @@ try {
         }
 
         // Generar código de producto
-        $res = pg_query_params($conn, "SELECT generar_codigo_producto($1) AS codigo", [$categoria_id]);
+        $res = pg_query_params($conn, "SELECT public.generar_codigo_producto($1) AS codigo", [$categoria_id]);
         $row = pg_fetch_assoc($res);
         $codigo_producto = $row['codigo'] ?? null;
 
@@ -81,7 +81,10 @@ try {
 if ($result === false) {
     $error = pg_last_error($conn);
     if (strpos($error, 'duplicate key value') !== false) {
-        // Silenciar y continuar
+        json_response([
+        "success" => false,
+        "message" => $error
+    ]);
         continue;
     } else {
         // Lanzar otros errores
