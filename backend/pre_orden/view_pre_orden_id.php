@@ -260,6 +260,6 @@ if (empty($yaExistePago) && !empty($idPago)) {
     echo json_encode([
         "success" => false,
         "error" => $e->getMessage()
-    ]);
+    ],JSON_UNESCAPED_UNICODE);
 }
 ?>

@@ -9,6 +9,7 @@ try {
     $data = json_decode(file_get_contents("php://input"), true) ?? [];
     $idCliente = $data['id_cliente'] ?? null;
     pg_set_client_encoding($conn, "UTF8");
+
     if (empty($idCliente)) {
         json_response([
             "success" => false,
@@ -61,13 +62,12 @@ JOIN clientes cl ON cl.id_cliente = $1";
 
     $productos = pg_fetch_all($result) ?? [];
 
-    $productos = array_map(fn($row) => array_map('utf8_encode', $row), $productos);
 
     json_response([
         "success" => true,
         "total" => count($productos),
         "productos" => $productos
-    ]);
+    ],JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     json_response([
         "success" => false,

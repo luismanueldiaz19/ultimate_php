@@ -2,8 +2,6 @@
 include '../conexion.php';
 include '../utils.php';
 
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
 
 try {
 

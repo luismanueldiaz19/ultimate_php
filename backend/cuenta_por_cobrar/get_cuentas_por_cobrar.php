@@ -25,7 +25,7 @@ GROUP BY
   c.id_cliente, c.nombre, c.rnc_cedula,
   po.pre_orden_id, po.num_orden, po.total_final,
   po.fecha_entrega, po.estado_general, po.is_facturado
-HAVING (po.total_final - COALESCE(SUM(pp.monto_pago), 0)) > 0 AND p.num_orden ~ '^ORD-[0-9]+$'
+HAVING (po.total_final - COALESCE(SUM(pp.monto_pago), 0)) > 0 AND po.num_orden ~ '^ORD-[0-9]+$'
 ORDER BY c.nombre, po.fecha_entrega DESC;
     ";
 
