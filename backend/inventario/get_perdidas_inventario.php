@@ -95,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $data[$pid]['perdidas'][] = [
             'fecha' => $row['fecha'],
-            'cantidad' => (float)$row['cantidad'],
-            'costo_unitario' => (float)$row['costo_unitario'],
-            'total_perdida' => (float)$row['total_perdida'],
+            'cantidad' => $row['cantidad'],
+            'costo_unitario' => $row['costo_unitario'],
+            'total_perdida' => $row['total_perdida'],
             'motivo' => $row['motivo'],
             'referencia' => $row['referencia'],
             'creado_por' => $row['creado_por']
