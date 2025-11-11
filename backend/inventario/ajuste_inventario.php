@@ -33,7 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Calcular diferencia
             $diferencia = $cantidad_real - $cantidad_esperada;
+
             $tipo_movimiento = $diferencia >= 0 ? 'AJUSTE POSITIVO' : 'AJUSTE NEGATIVO';
+
+         
 
             // 🔹 Insertar en inventario_ajustes
             $insert_ajuste = "INSERT INTO public.inventario_ajustes 
@@ -68,22 +71,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
 
+            // $cantidad_negativa =    $tipo_movimiento == 'AJUSTE NEGATIVO' ? -1 * abs($diferencia): 
+
             // 🔹 Registrar movimiento general
             $insert_mov = "INSERT INTO public.inventario_movimientos 
                 (producto_id, almacen_id, tipo_movimiento, cantidad, costo_unitario, referencia, motivo, creado_por, creado_en)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())";
             pg_query_params($conn, $insert_mov, [
-                $producto_id, $almacen_id, $tipo_movimiento, abs($diferencia), $costo_unitario,
+                $producto_id, $almacen_id, $tipo_movimiento, $diferencia, $costo_unitario,
                 'AJUSTE-' . date('YmdHis'), $motivo, $realizado_por
             ]);
 
             // 🔹 Registrar pérdida solo si el ajuste es negativo
             if ($diferencia < 0) {
                 $cantidad_perdida = abs($diferencia);
+
                 $total_perdida = $cantidad_perdida * $costo_unitario;
 
-                $insert_perdida = "INSERT INTO public.inventario_perdidas 
-                    (producto_id, almacen_id, cantidad, costo_unitario, total_perdida, referencia, motivo, creado_por)
+                $insert_perdida = "INSERT INTO public.inventario_perdidas (producto_id, almacen_id, cantidad, costo_unitario, total_perdida, referencia, motivo, creado_por)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
                 pg_query_params($conn, $insert_perdida, [
                     $producto_id, $almacen_id, $cantidad_perdida, $costo_unitario,

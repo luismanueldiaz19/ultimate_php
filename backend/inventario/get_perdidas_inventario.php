@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params[] = $almacen_id;
     }
 
-    $query .= " ORDER BY p.material, ip.creado_en ASC";
+    $query .= " ORDER BY p.material, ip.creado_en ASC limit 1500";
 
     $result = pg_query_params($conn, $query, $params);
 

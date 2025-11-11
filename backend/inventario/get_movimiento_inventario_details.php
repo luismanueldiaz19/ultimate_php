@@ -66,46 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Agrupar manualmente en PHP
-    $data = [];
-    while ($row = pg_fetch_assoc($result)) {
-        $pid = $row['id_producto'];
-
-        if (!isset($data[$pid])) {
-            $data[$pid] = [
-                'producto'=> [
-                    'id_producto' => $pid,
-                    'codigo_producto' => $row['codigo_producto'],
-                    'material' => $row['material'],
-                    'linea' => $row['linea'],
-                    'estilo' => $row['estilo'],
-                    'marca' => $row['marca'],
-                    'genero' => $row['genero'],
-                    'color' => $row['color'],
-                    'size' => $row['size'],
-                    'estilo' => $row['estilo'],
-                ],
-                 'catalogos'=> [
-                    'ruta_imagen' => $row['ruta_imagen'],
-                    'nombre_catalogo' => $row['nombre_catalogo']
-                ],
-                'movimientos' => []
-            ];
-        }
-
-        $data[$pid]['movimientos'][] = [
-            'fecha' => $row['fecha'],
-            'tipo_movimiento' => $row['tipo_movimiento'],
-            'cantidad' => $row['cantidad'],
-            'costo_unitario' => $row['costo_unitario'],
-            'motivo' => $row['motivo'],
-            'referencia' => $row['referencia'],
-            'creado_por' => $row['creado_por']
-        ];
-    }
+    $data = pg_fetch_all($result) ?: [];
 
     echo json_encode([
         'success' => true,
-        'data' => array_values($data)
+        'data' => $data
     ]);
 
     pg_close($conn);
