@@ -34,6 +34,7 @@ try {
             p.genero,
             p.color,
             p.size,
+            p.statu,
             c.nombre_categoria AS categoria,
             pr.nombre_proveedor AS proveedor,
             u.nombre_medida AS unidad_medida,
@@ -45,6 +46,8 @@ try {
             p.precio_two,
             p.precio_three,
             p.department,
+            inventario.stock_actual,
+	        inventario.reserva,
             p.creado_en,
             p.productos_catalogos_id
         FROM productos p
@@ -53,6 +56,7 @@ try {
         LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
         LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
         LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
+        LEFT JOIN inventario ON inventario.producto_id = p.id_producto
         ORDER BY p.id_producto
         LIMIT $limit OFFSET $offset
     ";

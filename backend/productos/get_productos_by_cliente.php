@@ -28,6 +28,7 @@ try {
             p.genero,
             p.color,
             p.size,
+            p.statu,
     p.codigo_producto,
     c.nombre_categoria AS categoria,
     pr.nombre_proveedor AS proveedor,
@@ -45,6 +46,8 @@ try {
         ELSE p.precio_one
     END AS precio_asignado,
     p.department,
+    inventario.stock_actual,
+	inventario.reserva,
     p.creado_en,
     p.productos_catalogos_id
 FROM productos p
@@ -53,6 +56,7 @@ LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
 LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
 LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
 LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
+LEFT JOIN inventario ON inventario.producto_id = p.id_producto
 JOIN clientes cl ON cl.id_cliente = $1";
 
     $result = pg_query_params($conn, $sql, [$idCliente]);
