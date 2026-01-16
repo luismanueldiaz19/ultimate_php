@@ -29,8 +29,10 @@ try {
             p.color,
             p.size,
             p.statu,
+            p.color_hex,
     p.codigo_producto,
     c.nombre_categoria AS categoria,
+    productos_catalogos.ruta_imagen,
     pr.nombre_proveedor AS proveedor,
     u.nombre_medida AS unidad_medida,
     i.nombre_impuesto AS impuesto,
@@ -57,6 +59,7 @@ LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
 LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
 LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
 LEFT JOIN inventario ON inventario.producto_id = p.id_producto
+LEFT JOIN public.productos_catalogos ON productos_catalogos.id_categoria = c.id_categoria
 JOIN clientes cl ON cl.id_cliente = $1";
 
     $result = pg_query_params($conn, $sql, [$idCliente]);

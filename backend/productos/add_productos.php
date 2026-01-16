@@ -9,7 +9,7 @@ try {
     $data = json_decode(file_get_contents("php://input"), true) ?? [];
 
     // Campos obligatorios
-    $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta' ,'proveedor_id','unidad_medida_id','impuesto_id', 'almacen_id','cuenta_contable_id', 'id_usuario','color'];
+    $requiredFields = ['nombre_producto', 'categoria_id', 'precio_compra', 'precio_venta' ,'proveedor_id','unidad_medida_id','impuesto_id', 'almacen_id','cuenta_contable_id', 'id_usuario','color','color_hex',];
     
     $missingFields = [];
     
@@ -39,6 +39,7 @@ try {
     $precio_venta  = (float)$data['precio_venta'];
     $stock_actual  = (float)($data['stock_actual'] ?? 0);
     $stock_minimo  = (float)($data['stock_minimo'] ?? 0);
+    $color_hex      = $data['color_hex'] ?? null;
     $activo        = isset($data['activo']) ? ($data['activo'] ? 't' : 'f') : 't';
     $usuarioId = $data['id_usuario'] ?? null;
     $color    = $data['color'] ?? null;
@@ -54,11 +55,11 @@ try {
 
     // Insertar producto
     $sql = "INSERT INTO productos 
-        (nombre_producto, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,color)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+        (nombre_producto, codigo_producto, categoria_id, proveedor_id, unidad_medida_id, impuesto_id, almacen_id, cuenta_contable_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo,color,color_hex)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         RETURNING id_producto, nombre_producto, codigo_producto, categoria_id, precio_compra, precio_venta, stock_actual, stock_minimo, activo";
 
-    $params = [$nombre,$codigo,$categoria_id,$proveedor_id,$unidad_id,$impuesto_id,$almacen_id,$cuenta_id,$precio_compra,$precio_venta,$stock_actual,$stock_minimo,$activo,$color];
+    $params = [$nombre,$codigo,$categoria_id,$proveedor_id,$unidad_id,$impuesto_id,$almacen_id,$cuenta_id,$precio_compra,$precio_venta,$stock_actual,$stock_minimo,$activo,$color, $color_hex];
     
     $result = pg_query_params($conn, $sql, $params);
 

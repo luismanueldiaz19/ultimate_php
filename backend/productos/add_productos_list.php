@@ -54,6 +54,7 @@ try {
             'genero' => $p['genero'] ?? null,
             'color' => $p['color'] ?? null,
             'size' => $p['size'] ?? null,
+            'color_hex' => $p['color_hex'] ?? null,
             'department' => $p['department'] ?? null,
         ];
    // linea, material, estilo, marca, genero, color, size
