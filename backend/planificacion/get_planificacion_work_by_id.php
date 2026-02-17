@@ -46,7 +46,6 @@ if (empty($department_id) || empty($planificacion_work_id)) {
             list_ficha_available.color_ficha,
             item_pre_orden.nota_producto,
             item_pre_orden.cant,
-            item_pre_orden.tela,
             pre_orden.name_logo,
             pre_orden.num_orden,
             pre_orden.ficha_id,
@@ -133,7 +132,6 @@ foreach ($planificaciones as $row) {
      "Ficha" => $dataFichas,
     "nota_producto" => $row['nota_producto'],
     "cant" => $row['cant'],
-    "tela" => $row['tela'],
     "name_logo" => $row['name_logo'],
     "num_orden" => $row['num_orden'],
     

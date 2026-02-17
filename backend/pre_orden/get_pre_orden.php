@@ -138,6 +138,7 @@ try {
                 "color" => $item['color'],
                 "size" => $item['size'], 
                 'department' => $item['department'],
+                'nota_producto' => $item['nota_producto'],
                 ],
                 'nota_producto' => $item['nota_producto'],
                 'department' => $item['department'],
