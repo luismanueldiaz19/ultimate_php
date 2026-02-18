@@ -56,8 +56,7 @@ try {
     $estadoId = $estado['id'];
 
     // Insertar en design_tipo
-    $sql = "INSERT INTO public.design_tipo(
-                design_company_id, tipo_trabajo, costo_logo, has_cost, duracion, estado_aprobacion_id
+    $sql = "INSERT INTO public.design_tipo(design_company_id, tipo_trabajo, costo_logo, has_cost, duracion, estado_aprobacion_id
             ) VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *";
 

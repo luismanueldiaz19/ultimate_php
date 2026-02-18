@@ -1,147 +1,148 @@
 <?php
-include '../conexion.php';
-include '../utils.php';
 
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
+require_once('../conexion.php');
+require_once('../utils.php');
 
-try {
-    $data = json_decode(file_get_contents("php://input"), true) ?? [];
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
 
-    // =========================
-    // PAGINACIÓN
-    // =========================
-    $page  = max(1, intval($data['page'] ?? 1));
-    $limit = min(100, max(20, intval($data['limit'] ?? 50)));
-    $offset = ($page - 1) * $limit;
+// -----------------------------
+// Paginación
+// -----------------------------
 
-    // =========================
-    // FILTROS
-    // =========================
-    $search   = trim($data['search'] ?? '');
-    $linea    = trim($data['linea'] ?? '');
-    $material = trim($data['material'] ?? '');
-    $estilo   = trim($data['estilo'] ?? '');
-    $marca    = trim($data['marca'] ?? '');
+$input = json_decode(file_get_contents('php://input'), true);
+$input = is_array($input) ? $input : [];
 
-    $where = [];
-    $params = [];
-    $i = 1;
+// --------------------------------
+// Paginación
+// --------------------------------
+$per_page = isset($input['per_page']) ? (int)$input['per_page'] : 10;
+$page     = isset($input['page']) ? (int)$input['page'] : 1;
+$page     = max($page, 1);
+$offset   = ($page - 1) * $per_page;
 
-    if ($search !== '') {
-        $where[] = "(p.codigo_producto ILIKE $" . $i . "
-                    OR p.material ILIKE $" . $i . "
-                    OR p.marca ILIKE $" . $i . ")";
-        $params[] = "%$search%";
-        $i++;
-    }
+// --------------------------------
+// Filtro de búsqueda
+// --------------------------------
+$search = isset($input['search']) ? trim($input['search']) : '';
 
-    if ($linea !== '') {
-        $where[] = "p.linea = $" . $i;
-        $params[] = $linea;
-        $i++;
-    }
+// Expresión del nombre completo (reutilizable)
+$nombre_producto_expr = "
+concat_ws(' ',
+    nullif(nullif(upper(trim(p.linea)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.marca)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.estilo)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.material)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.genero)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.color)), 'NULL'), 'N/A'),
+    nullif(nullif(upper(trim(p.size)), 'NULL'), 'N/A')
+)
+";
 
-    if ($material !== '') {
-        $where[] = "p.material = $" . $i;
-        $params[] = $material;
-        $i++;
-    }
-
-    if ($estilo !== '') {
-        $where[] = "p.estilo = $" . $i;
-        $params[] = $estilo;
-        $i++;
-    }
-
-    if ($marca !== '') {
-        $where[] = "p.marca = $" . $i;
-        $params[] = $marca;
-        $i++;
-    }
-
-    $whereSql = count($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-
-    // =========================
-    // CONSULTA PRINCIPAL
-    // =========================
-    $sql = "
-        SELECT 
-            p.id_producto,
-            p.codigo_producto,
-            p.linea,
-            p.material,
-            p.estilo,
-            p.marca,
-            p.genero,
-            p.color,
-            p.size,
-            p.statu,
-            p.color_hex,
-            c.nombre_categoria AS categoria,
-            pr.nombre_proveedor AS proveedor,
-            u.nombre_medida AS unidad_medida,
-            i.nombre_impuesto AS impuesto,
-            i.porcentaje_impuesto AS porcentaje_impuesto,
-            a.nombre_almacen AS almacen,
-            p.costo,
-            p.precio_one,
-            p.precio_two,
-            p.precio_three,
-            p.department,
-            inventario.stock_actual,
-            inventario.reserva,
-            productos_catalogos.ruta_imagen,
-            p.creado_en,
-            p.productos_catalogos_id
-        FROM productos p
-        LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
-        LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
-        LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
-        LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
-        LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
-        LEFT JOIN inventario ON inventario.producto_id = p.id_producto
-        LEFT JOIN productos_catalogos ON productos_catalogos.id_categoria = c.id_categoria
-        $whereSql
-        ORDER BY p.id_producto DESC
-        LIMIT $" . $i . " OFFSET $" . ($i + 1) . "
-    ";
-
-    $params[] = $limit;
-    $params[] = $offset;
-
-    $result = pg_query_params($conn, $sql, $params);
-    if (!$result) {
-        throw new Exception(pg_last_error($conn));
-    }
-
-    $productos = pg_fetch_all($result) ?? [];
-
-    // =========================
-    // TOTAL (para paginación)
-    // =========================
-    $countSql = "SELECT COUNT(*) FROM productos p $whereSql";
-    $countParams = array_slice($params, 0, $i - 1);
-
-    $countResult = pg_query_params($conn, $countSql, $countParams);
-    $total = (int) pg_fetch_result($countResult, 0, 0);
-
-    // =========================
-    // RESPUESTA FINAL
-    // =========================
-    json_response([
-        "success" => true,
-        "page" => $page,
-        "limit" => $limit,
-        "total" => $total,
-        "total_pages" => ceil($total / $limit),
-        "hasMore" => count($productos) === $limit,
-        "productos" => $productos
-    ], JSON_UNESCAPED_UNICODE);
-
-} catch (Throwable $e) {
-    json_response([
-        "success" => false,
-        "message" => "Error: " . $e->getMessage()
-    ], 500);
+// WHERE dinámico
+$where = '';
+if ($search !== '') {
+    $safe_search = pg_escape_string($conn, strtoupper($search));
+    $where       = "WHERE $nombre_producto_expr ILIKE '%$safe_search%'";
 }
+
+// -----------------------------
+// Conteo total
+// -----------------------------
+$count_query = "
+SELECT COUNT(*) AS total
+FROM productos p
+LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
+LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
+LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
+LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
+LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
+LEFT JOIN inventario inv ON inv.producto_id = p.id_producto
+$where
+";
+
+$count_result = pg_query($conn, $count_query);
+if (!$count_result) {
+    echo json_encode(['error' => pg_last_error()]);
+    exit;
+}
+
+$total       = (int)pg_fetch_result($count_result, 0, 'total');
+$total_pages = ($per_page > 0) ? ceil($total / $per_page) : 1;
+
+// -----------------------------
+// Consulta principal
+// -----------------------------
+$query = "
+SELECT
+    p.id_producto,
+    p.codigo_producto,
+
+    $nombre_producto_expr AS nombre_producto,
+
+    p.linea,
+    p.material,
+    p.estilo,
+    p.marca,
+    p.genero,
+    p.color,
+    p.size,
+    p.statu,
+    p.color_hex,
+
+    c.nombre_categoria AS categoria,
+    pr.nombre_proveedor AS proveedor,
+    u.nombre_medida AS unidad_medida,
+    i.nombre_impuesto AS impuesto,
+    i.porcentaje_impuesto AS porcentaje_impuesto,
+    a.nombre_almacen AS almacen,
+
+    p.costo,
+    p.precio_one,
+    p.precio_two,
+    p.precio_three,
+    p.department,
+
+    inv.stock_actual,
+    inv.reserva,
+
+    p.creado_en,
+    p.productos_catalogos_id
+
+FROM productos p
+LEFT JOIN categorias c ON p.categoria_id = c.id_categoria
+LEFT JOIN proveedores pr ON p.proveedor_id = pr.id_proveedor
+LEFT JOIN unidades_medida u ON p.unidad_medida_id = u.id_unidad
+LEFT JOIN impuestos i ON p.impuesto_id = i.id_impuesto
+LEFT JOIN almacenes a ON p.almacen_id = a.id_almacen
+LEFT JOIN inventario inv ON inv.producto_id = p.id_producto
+
+$where
+ORDER BY nombre_producto  DESC
+LIMIT $per_page OFFSET $offset
+";
+
+$result = pg_query($conn, $query);
+if (!$result) {
+    echo json_encode(['error' => pg_last_error()]);
+    exit;
+}
+
+// -----------------------------
+// Resultado
+// -----------------------------
+$data = [];
+while ($row = pg_fetch_assoc($result)) {
+    $data[] = $row;
+}
+
+$response = [
+    'total'        => $total,
+    'per_page'     => $per_page,
+    'current_page' => $page,
+    'total_pages'  => $total_pages,
+    'data'         => $data,
+];
+
+echo json_encode($response);
+pg_close($conn);

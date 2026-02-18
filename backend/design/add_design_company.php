@@ -1,59 +1,60 @@
 <?php
+
 include '../conexion.php';
 include '../utils.php';
 
-header("Content-Type: application/json; charset=UTF-8");
+header('Content-Type: application/json; charset=UTF-8');
 
-$data = json_decode(file_get_contents("php://input"), true);
+$data = json_decode(file_get_contents('php://input'), true);
 
-// Validación básica
+// Validaciones obligatorias
 if (empty($data['institution_name'])) {
-    json_response(["success" => false, "message" => "Falta institution_name"], 400);
+    json_response(['success' => false, 'message' => 'Falta institution_name'], 400);
 }
 
-$usuarioId = $data['usuario_id'] ?? null;
-if (!$usuarioId) {
-    json_response(["success" => false, "message" => "Usuario no autenticado"], 401);
+if (empty($data['registed_by'])) {
+    json_response(['success' => false, 'message' => 'Falta registed_by (registed_by)'], 400);
 }
 
-pg_query($conn, "BEGIN");
+$institution_name = trim($data['institution_name']);
+$registed_by      = $data['registed_by'];
+$cliente          = $data['cliente'] ?? null; // opcional
+
+pg_query($conn, 'BEGIN');
 
 try {
-    $sqlJob = "INSERT INTO design_company (institution_name) VALUES ($1) RETURNING *";
 
-    $paramsJob = [
-        $data['institution_name']
+    $sql = 'INSERT INTO design_company 
+            (institution_name, cliente, registed_by)
+            VALUES ($1, $2, $3)
+            RETURNING *';
+
+    $params = [
+        $institution_name,
+        $cliente,      // puede ser null
+        $registed_by
     ];
 
-    $resultJob = @pg_query_params($conn, $sqlJob, $paramsJob);
+    $result = pg_query_params($conn, $sql, $params);
 
-    if (!$resultJob) {
-        json_response([
-              "success" => false,
-              "message" => "Existe Este Nombre Institucion/logo/clientes",
-           ]);
-         exit;
-        // throw new Exception("Error al insertar en design_jobs.");
+    if (!$result) {
+        throw new Exception('Existe Este Nombre Institucion/logo/clientes');
     }
 
-    $job = pg_fetch_assoc($resultJob);
-    
-    pg_query($conn, "COMMIT");
+    $row = pg_fetch_assoc($result);
+
+    pg_query($conn, 'COMMIT');
 
     json_response([
-        "success" => true,
-        "message" => "Registro primario correctamente",
-        "data" => $job
+        'success' => true,
+        'message' => 'Registro insertado correctamente',
+        'data'    => $row
     ]);
 
 } catch (Exception $e) {
-    pg_query($conn, "ROLLBACK");
-    json_response(["success" => false, "message" => $e->getMessage()], 500);
+    pg_query($conn, 'ROLLBACK');
+    json_response([
+        'success' => false,
+        'message' => $e->getMessage()
+    ], 500);
 }
-
-// function phpArrayToPgArray($array) {
-//     if (empty($array)) return null;
-//     return '{' . implode(',', array_map(function($v) {
-//         return '"' . addslashes($v) . '"';
-//     }, $array)) . '}';
-// }

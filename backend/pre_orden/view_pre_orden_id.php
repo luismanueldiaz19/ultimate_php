@@ -1,15 +1,16 @@
 <?php
+
 include '../conexion.php';
 include '../utils.php';
-header("Content-Type: application/json");
+header('Content-Type: application/json');
 
-$data = json_decode(file_get_contents("php://input"), true);
+$data = json_decode(file_get_contents('php://input'), true);
 
 // Filtro recibido
 $numOrdenFiltro = isset($data['num_orden']) ? trim($data['num_orden']) : '';
 
 // Validar campos requeridos
-$params = ['num_orden'];
+$params    = ['num_orden'];
 $faltantes = [];
 
 foreach ($params as $campo) {
@@ -20,8 +21,8 @@ foreach ($params as $campo) {
 
 if (!empty($faltantes)) {
     echo json_encode([
-        'status' => false,
-        'message' => 'Faltan campos requeridos o están vacíos',
+        'status'    => false,
+        'message'   => 'Faltan campos requeridos o están vacíos',
         'faltantes' => $faltantes
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -64,6 +65,18 @@ $sql = "SELECT
     productos.genero,
     productos.color,
     productos.size,
+
+
+    -- Nombre dinámico del producto
+    concat_ws(' ',
+                nullif(nullif(upper(trim(productos.linea)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.marca)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.estilo)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.material)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.genero)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.color)), 'NULL'), 'N/A'),
+                nullif(nullif(upper(trim(productos.size)), 'NULL'), 'N/A')
+            ) AS nombre_producto,
 
 
 
@@ -139,61 +152,60 @@ try {
         // Si la orden no está registrada aún, la inicializamos
         if (!isset($agrupadoPorOrden[$numOrden])) {
             $dataClient = [
-                'id_cliente' => $item['id_cliente'],
-                'nombre' => $item['nombre_cliente'],
-                'telefono' => $item['telefono'],
+                'id_cliente'        => $item['id_cliente'],
+                'nombre'            => $item['nombre_cliente'],
+                'telefono'          => $item['telefono'],
                 'codigo_cuenta_cxc' => $item['codigo_cuenta_cxc'],
-                'tiene_credito' => $item['tiene_credito'],
-                'limite_credito' => $item['limite_credito'],
-                'dias_credito' => $item['dias_credito']
+                'tiene_credito'     => $item['tiene_credito'],
+                'limite_credito'    => $item['limite_credito'],
+                'dias_credito'      => $item['dias_credito']
             ];
 
-       
             $dataFichas = [
-                'ficha_id' => $item['ficha_id'],
-                'ficha' => $item['ficha'],
+                'ficha_id'    => $item['ficha_id'],
+                'ficha'       => $item['ficha'],
                 'color_ficha' => json_decode($item['color_ficha'], true),
             ];
 
             $dataUsuario = [
-                'id_usuario' => $item['id_usuario'],
+                'id_usuario'     => $item['id_usuario'],
                 'usuario_nombre' => $item['usuario_nombre'],
             ];
 
             $agrupadoPorOrden[$numOrden] = [
-                'num_orden' => $numOrden,
-                'num_comprobante' =>  $item['num_comprobante'],
-                'fecha_emision' =>  $item['fecha_emision'],
-                'pre_orden_id' => $item['pre_orden_id'],
-                'ficha' => $dataFichas,
-                'cliente' => $dataClient,
-                'usuario' => $dataUsuario,
-                'estado_hoja' => $item['estado_hoja'],
-                'estado_general' => $item['estado_general'],
-                'fecha_entrega' => $item['fecha_entrega'],
-                'creado_en' => $item['creado_en'],
-                'total_bruto' => $item['total_bruto'],
-                'total_itbis' => $item['total_itbis'],
-                'total_final' => $item['total_final'],
-                'is_facturado' => $item['is_facturado'],
-                'name_logo' => $item['name_logo'],
-                'nota_orden' => $item['nota_orden'],
+                'num_orden'       => $numOrden,
+                'num_comprobante' => $item['num_comprobante'],
+                'fecha_emision'   => $item['fecha_emision'],
+                'pre_orden_id'    => $item['pre_orden_id'],
+                'ficha'           => $dataFichas,
+                'cliente'         => $dataClient,
+                'usuario'         => $dataUsuario,
+                'estado_hoja'     => $item['estado_hoja'],
+                'estado_general'  => $item['estado_general'],
+                'fecha_entrega'   => $item['fecha_entrega'],
+                'creado_en'       => $item['creado_en'],
+                'total_bruto'     => $item['total_bruto'],
+                'total_itbis'     => $item['total_itbis'],
+                'total_final'     => $item['total_final'],
+                'is_facturado'    => $item['is_facturado'],
+                'name_logo'       => $item['name_logo'],
+                'nota_orden'      => $item['nota_orden'],
                 'items_pre_orden' => [],
-                'pagos' => [],
-                'estado_pago' => $item['estado_pago'] ?? null,
-                'total_pagado' => $item['total_pagado'] ?? 0,
-                'pendiente' => $item['pendiente'] ?? 0,
+                'pagos'           => [],
+                'estado_pago'     => $item['estado_pago']  ?? null,
+                'total_pagado'    => $item['total_pagado'] ?? 0,
+                'pendiente'       => $item['pendiente']    ?? 0,
             ];
         }
 
         // Evitar duplicados de productos
-        $idItem = $item['item_pre_orden_id'];
+        $idItem   = $item['item_pre_orden_id'];
         $yaExiste = array_filter($agrupadoPorOrden[$numOrden]['items_pre_orden'], function ($i) use ($idItem) {
             return $i['item_pre_orden_id'] == $idItem;
         });
 
         if (empty($yaExiste) && !empty($idItem)) {
-            
+
             $designImage = [
                 // 'design_image_id' => $item['design_image_id'],
                 // 'design_jobs_id' => $item['design_jobs_id'],
@@ -205,61 +217,60 @@ try {
             ];
 
             $dataProducto = [
-                'codigo_producto' => $item['codigo_producto'],
-                'id_producto' => $item['id_producto'],
-                "linea" => $item['linea'],
-                "material" => $item['material'],
-                "estilo" => $item['estilo'],
-                "marca" => $item['marca'],
-                "genero" => $item['genero'],
-                "color" => $item['color'],
-                "size" => $item['size'],
-                'nota_producto' => $item['nota_producto'],
+                'codigo_producto'  => $item['codigo_producto'],
+                'id_producto'      => $item['id_producto'],
+                'linea'            => $item['linea'],
+                'material'         => $item['material'],
+                'estilo'           => $item['estilo'],
+                'marca'            => $item['marca'],
+                'genero'           => $item['genero'],
+                'color'            => $item['color'],
+                'size'             => $item['size'],
+                'nota_producto'    => $item['nota_producto'],
+                'nombre_producto'  => $item['nombre_producto'],
             ];
 
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $idItem,
-                'producto' =>  $dataProducto,
-                'precio' => $item['precio'],
-                'itbs' => $item['itbs'],
-                'cant' => $item['cant'],
-                'estado_item' => $item['estado_item'],
-                'creado_item' => $item['creado_item'],
-                'is_produccion' => $item['is_produccion'],
-                'department' => $item['department'],
-                'DesignImage' => $designImage,
+                'producto'          => $dataProducto,
+                'precio'            => $item['precio'],
+                'itbs'              => $item['itbs'],
+                'cant'              => $item['cant'],
+                'estado_item'       => $item['estado_item'],
+                'creado_item'       => $item['creado_item'],
+                'is_produccion'     => $item['is_produccion'],
+                'department'        => $item['department'],
+                'DesignImage'       => $designImage,
             ];
         }
 
-       $idPago = $item['pago_id'];
-$yaExistePago = array_filter($agrupadoPorOrden[$numOrden]['pagos'], function ($p) use ($idPago) {
-    return $p['pago_id'] == $idPago;
-});
+        $idPago       = $item['pago_id'];
+        $yaExistePago = array_filter($agrupadoPorOrden[$numOrden]['pagos'], function ($p) use ($idPago) {
+            return $p['pago_id'] == $idPago;
+        });
 
-if (empty($yaExistePago) && !empty($idPago)) {
-    $agrupadoPorOrden[$numOrden]['pagos'][] = [
-        'pago_id' => $item['pago_id'],
-        'monto_pago' => $item['monto_pago'],
-        'metodo_pago' => $item['metodo_pago'],
-        'referencia_pago' => $item['referencia_pago'],
-        'fecha_pago' => $item['fecha_pago'],
-        'observacion' => $item['observacion'],
-        'id_usuario' => $item['id_usuario'],
-    ];
-}
-
+        if (empty($yaExistePago) && !empty($idPago)) {
+            $agrupadoPorOrden[$numOrden]['pagos'][] = [
+                'pago_id'         => $item['pago_id'],
+                'monto_pago'      => $item['monto_pago'],
+                'metodo_pago'     => $item['metodo_pago'],
+                'referencia_pago' => $item['referencia_pago'],
+                'fecha_pago'      => $item['fecha_pago'],
+                'observacion'     => $item['observacion'],
+                'id_usuario'      => $item['id_usuario'],
+            ];
+        }
 
     }
 
     echo json_encode([
-        "success" => true,
-        "pre_orden" => reset($agrupadoPorOrden)
+        'success'   => true,
+        'pre_orden' => reset($agrupadoPorOrden)
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
     echo json_encode([
-        "success" => false,
-        "error" => $e->getMessage()
-    ],JSON_UNESCAPED_UNICODE);
+        'success' => false,
+        'error'   => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
-?>
