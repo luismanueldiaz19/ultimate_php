@@ -76,7 +76,7 @@ $sql = "SELECT
                 nullif(nullif(upper(trim(productos.genero)), 'NULL'), 'N/A'),
                 nullif(nullif(upper(trim(productos.color)), 'NULL'), 'N/A'),
                 nullif(nullif(upper(trim(productos.size)), 'NULL'), 'N/A')
-            ) AS nombre_producto,
+    ) AS nombre_producto,
 
 
 
@@ -206,15 +206,15 @@ try {
 
         if (empty($yaExiste) && !empty($idItem)) {
 
-            $designImage = [
-                // 'design_image_id' => $item['design_image_id'],
-                // 'design_jobs_id' => $item['design_jobs_id'],
-                // 'comment_imagen' => $item['comment_imagen'],
-                // 'body_ubicacion' => $item['body_ubicacion'],
-                // 'tipo_trabajo' => $item['tipo_trabajo'],
-                // 'ruta' => $item['ruta'],
-                // 'tamano' => $item['tamano']
-            ];
+            // $designImage = [
+            //     // 'design_image_id' => $item['design_image_id'],
+            //     // 'design_jobs_id' => $item['design_jobs_id'],
+            //     // 'comment_imagen' => $item['comment_imagen'],
+            //     // 'body_ubicacion' => $item['body_ubicacion'],
+            //     // 'tipo_trabajo' => $item['tipo_trabajo'],
+            //     // 'ruta' => $item['ruta'],
+            //     // 'tamano' => $item['tamano']
+            // ];
 
             $dataProducto = [
                 'codigo_producto'  => $item['codigo_producto'],
@@ -232,7 +232,6 @@ try {
 
             $agrupadoPorOrden[$numOrden]['items_pre_orden'][] = [
                 'item_pre_orden_id' => $idItem,
-                'producto'          => $dataProducto,
                 'precio'            => $item['precio'],
                 'itbs'              => $item['itbs'],
                 'cant'              => $item['cant'],
@@ -240,7 +239,8 @@ try {
                 'creado_item'       => $item['creado_item'],
                 'is_produccion'     => $item['is_produccion'],
                 'department'        => $item['department'],
-                'DesignImage'       => $designImage,
+                'producto'          => $dataProducto,
+                'DesignImage'       => [],
             ];
         }
 
